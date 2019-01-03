@@ -1,26 +1,39 @@
-import numpy as np
 import os
+import graph_tool.all as gt
+
+def load_fb_subgraph(node_id):
+    path = os.path.join('FB_subgraph', 'facebook', '{}.edges'.format(node_id))
+    assert os.path.exists(path), "File not found"
+    with open(path, 'r') as file:
+        V = set()
+        E = []
+        lines = file.readlines()
+        for line in lines:
+            line = line[:-1]  # removes the '\n'
+            s = line.split(" ")
+            i, j = int(s[0]), int(s[1])
+            E.append((i, j))
+            V.add(i)  # if node is already in V, dismiss
+            V.add(j)
+        V = list(V)
+    return V, E
 
 
-def FB_subgraph(path):
-    
-    assert os.path.exists(path + "/facebook_combined.txt"), "File not found"
-    file = open(path + "/facebook_combined.txt", "r")
-    V = set()
-    E = []
-    edges = file.readlines()
-    s = edges[0].split(" ")
-    for e in edges:
-        s = e.split(" ")
-        i, j = int(s[0]), int(s[1].split("\n")[0])
-        E.append((i, j))
-        V.add(i)
-        V.add(j)
-    V = list(V)
-    n = len(V)
-    W = np.zeros([n, n])
+def draw_graph(V, E):
+    g = gt.Graph()
+    vertices = []
+    index = {}
+    for i in range(len(V)):
+        index[V[i]] = i
+    for _ in V:
+        vertices.append(g.add_vertex())
     for (i, j) in E:
-        W[i, j] = np.random.uniform(low=0, high=0.1)
-        
-    return W
-        
+        g.add_edge(vertices[index[i]], vertices[index[j]])
+    gt.graph_draw(g)
+
+
+if __name__ == '__main__':
+    V, E = load_fb_subgraph(0)
+    # g = price_network(1500)
+    # print(g)
+    draw_graph(V, E)

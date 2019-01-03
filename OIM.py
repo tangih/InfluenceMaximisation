@@ -15,21 +15,17 @@ class Graph:
         e = np.where(W > 0)
         self.E = [(e[0][i], e[1][i]) for i in range(len(e[0]))]
         
-        
     def in_neighbors(self, i):
         neighbors_mask = self.W[:, i] > 0
         return list(np.where(neighbors_mask)[0])
-        
         
     def out_neighbors(self, i):
         neighbors_mask = self.W[i, :] > 0
         return list(np.where(neighbors_mask)[0])
     
-    
     def p(self, i, j):
         return self.W[i, j]
-    
-    
+
     def dfs(self, S, F):
         """ Determines all nodes accessible from the set of nodes S through the
         subset of edges F, using the Depth-First Search algorithm """
@@ -49,8 +45,7 @@ class IM(Graph):
     
     def __init__(self, W):
         super(IM, self).__init__(W)
-   
-        
+
     def run(self, S):
         assert (all(x in self.V for x in S)), "Seed set should be a subset of the graph nodes set"
         if len(S) != len(set(S)):
@@ -130,53 +125,49 @@ class CUCB(IM):
         return mu_hat, cumulated_reward   
     
 
-# Directed graph with 6 nodes 
-#W = np.array([
-#        [0, 0.5, 0, 0, 0, 0],
-#        [0, 0, 0.2, 0, 0, 0],
-#        [0.2, 0, 0, 0, 0, 0],
-#        [0, 0, 0.5, 0, 0.5, 0],
-#        [0, 0, 0, 0, 0, 0],
-#        [0, 0, 0, 0.5, 0.3, 0]
-#    ])
-    
-# Facebook subgraph
-W = FB_subgraph("FB_subgraph")
-        
-#g = Graph(W)
+if __name__ == '__main__':
+    # Directed graph with 6 nodes
+    # W = np.array([
+    #        [0, 0.5, 0, 0, 0, 0],
+    #        [0, 0, 0.2, 0, 0, 0],
+    #        [0.2, 0, 0, 0, 0, 0],
+    #        [0, 0, 0.5, 0, 0.5, 0],
+    #        [0, 0, 0, 0, 0, 0],
+    #        [0, 0, 0, 0.5, 0.3, 0]
+    #    ])
 
-#im = IM(W)
-#print("V : ", im.V)
-#print("E : ", im.E)
-#activated_edges, triggered_arms, reward = im.run([3])
-#print("Activated edges : ", activated_edges)
-#print("Triggered arms : ", triggered_arms)
-#print("Reward : ", reward)
+    # Facebook subgraph
+    W = FB_subgraph("FB_subgraph")
 
-alg = CUCB(W)
-T = 10
-k = 2
+    # g = Graph(W)
 
-l_MC = 200 # number of simulations used for the Monte-Carlo averages
-MC = MonteCarloOracle(l_MC)
+    # im = IM(W)
+    # print("V : ", im.V)
+    # print("E : ", im.E)
+    # activated_edges, triggered_arms, reward = im.run([3])
+    # print("Activated edges : ", activated_edges)
+    # print("Triggered arms : ", triggered_arms)
+    # print("Reward : ", reward)
 
-epsilon = 0.2 # performance criterion
-p = 0.95 # performance criterion
-l_TIM = l_parameter(alg.nb_nodes, p)
-print("l_TIM : ", l_TIM)
-TIM = TIMOracle(epsilon, l_TIM)
+    alg = CUCB(W)
+    T = 10
+    k = 2
 
-#print("\nWith Monte Carlo oracle : ")
-#mu_hat, cumulated_reward = alg.bandit(T, k, MC)
-#print("mu_hat : ", mu_hat)
-#print("cumulated_reward : ", cumulated_reward)
+    l_MC = 200 # number of simulations used for the Monte-Carlo averages
+    MC = MonteCarloOracle(l_MC)
 
-print("\nWith Two Phase Influence Maximization (TIM) oracle : ")
-mu_hat, cumulated_reward = alg.bandit(T, k, TIM)
-print("mu_hat : ", mu_hat)
-print("cumulated_reward : ", cumulated_reward)
-    
-        
-        
-        
-    
+    epsilon = 0.2  # performance criterion
+    p = 0.95  # performance criterion
+    l_TIM = l_parameter(alg.nb_nodes, p)
+    print("l_TIM : ", l_TIM)
+    TIM = TIMOracle(epsilon, l_TIM)
+
+    # print("\nWith Monte Carlo oracle : ")
+    # mu_hat, cumulated_reward = alg.bandit(T, k, MC)
+    # print("mu_hat : ", mu_hat)
+    # print("cumulated_reward : ", cumulated_reward)
+
+    print("\nWith Two Phase Influence Maximization (TIM) oracle : ")
+    mu_hat, cumulated_reward = alg.bandit(T, k, TIM)
+    print("mu_hat : ", mu_hat)
+    print("cumulated_reward : ", cumulated_reward)

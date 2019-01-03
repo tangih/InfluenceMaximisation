@@ -3,11 +3,10 @@ from scipy.special import binom as binom
 
 
 class MonteCarloOracle:
-    
+
     def __init__(self, l):
         self.l = l
-    
-    
+
     def expected_spread(self, g, S):
         """ Approximates the expected number of influenced nodes f(S),
         starting with seed set S, by averaging l simulations """
@@ -16,13 +15,11 @@ class MonteCarloOracle:
             _, _, reward = g.run(S)
             r_hat += reward
         return int(r_hat / self.l)
-    
-    
+
     def approx(self, g, k):
-        
         S = []
         non_chosen = g.V.copy()
-            
+
         for t in range(k):
             values = []
             for v in g.V:
@@ -33,7 +30,7 @@ class MonteCarloOracle:
             v_t = np.argmax(values)
             S.append(v_t)
             non_chosen.remove(v_t)
-        
+
         return S
     
     
@@ -42,8 +39,7 @@ class TIMOracle:
     def __init__(self, epsilon, l):
         self.epsilon = epsilon
         self.l = l
-    
-    
+
     def random_RR_set(g):
         v_0 = np.random.choice(g.V)
         queue = [v_0]
@@ -60,7 +56,6 @@ class TIMOracle:
                         queue.append(u)
         
         return R
-    
     
     def width(g, R):
         return sum([len(g.in_neighbors(v)) for v in R])
@@ -83,7 +78,6 @@ class TIMOracle:
         
         return 1
     
-    
     def node_selection(g, k, theta):
         
         R_list = []
@@ -103,7 +97,6 @@ class TIMOracle:
             values[v_t] = - np.inf
         
         return S
-    
         
     def approx(self, g, k):
         
@@ -125,4 +118,3 @@ def l_parameter(n, p):
     """ Returns the l parameter such that the TIM oracle guarantees its
     performance with probability p when running on a graph with n nodes """
     return (- np.log(1 - p)) / np.log(n)
-    
