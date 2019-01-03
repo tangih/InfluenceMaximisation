@@ -1,6 +1,6 @@
 import numpy as np
 from oracles import MonteCarloOracle, TIMOracle, l_parameter
-from load_data import FB_subgraph
+from load_data import load_fb_subgraph, compute_weights
 
 
 class Graph:
@@ -137,8 +137,8 @@ if __name__ == '__main__':
     #    ])
 
     # Facebook subgraph
-    W = FB_subgraph("FB_subgraph")
-
+    V, E = load_fb_subgraph(0)
+    W = compute_weights(V, E)
     # g = Graph(W)
 
     # im = IM(W)

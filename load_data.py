@@ -1,5 +1,7 @@
 import os
+import numpy as np
 import graph_tool.all as gt
+
 
 def load_fb_subgraph(node_id):
     path = os.path.join('FB_subgraph', 'facebook', '{}.edges'.format(node_id))
@@ -17,6 +19,14 @@ def load_fb_subgraph(node_id):
             V.add(j)
         V = list(V)
     return V, E
+
+
+def compute_weights(V, E):
+    n = len(V)
+    W = np.zeros((n, n), dtype=np.float)
+    for (i, j) in E:
+        W[i, j] = np.random.uniform(0, .1)
+    return W
 
 
 def draw_graph(V, E):
