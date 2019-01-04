@@ -1,4 +1,5 @@
 *.pdf
 __pycache__/
-FB_subgraph/
+facebook/
+twitter/
 .idea/

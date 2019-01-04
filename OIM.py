@@ -1,30 +1,31 @@
 import numpy as np
 from oracles import MonteCarloOracle, TIMOracle, l_parameter
-from load_data import load_fb_subgraph, compute_weights
+from load_data import load_graph, compute_weights
 
 
 class Graph:
     
-    def __init__(self, W):
-        assert (type(W) == np.ndarray), "Incorrect data type for the weight matrix"
-        s = np.shape(W)
-        assert (s == (s[0], s[0])), "Weight matrix is either not 2D, or not square"
-        self.W = W
-        self.nb_nodes = s[0]
-        self.V = list(range(s[0]))
-        e = np.where(W > 0)
-        self.E = [(e[0][i], e[1][i]) for i in range(len(e[0]))]
-        
+    def __init__(self, E, W, n):
+        self.nb_nodes = n
+        self.weight_matrix = np.zeros((n, n), dtype=np.float)
+        self.E = E
+        self.in_neighb = [[] for _ in range(n)]
+        self.out_neighb = [[] for _ in range(n)]
+
+        for k, (i, j) in enumerate(E):
+            self.weight_matrix[i, j] = W[k]
+            self.E = [(e[0][i], e[1][i]) for i in range(len(e[0]))]
+            self.in_neighb[j].append(i)
+            self.out_neighb[i].append(j)
+
     def in_neighbors(self, i):
-        neighbors_mask = self.W[:, i] > 0
-        return list(np.where(neighbors_mask)[0])
+        return self.in_neighb[i]
         
     def out_neighbors(self, i):
-        neighbors_mask = self.W[i, :] > 0
-        return list(np.where(neighbors_mask)[0])
-    
+        return self.out_neighb[i]
+
     def p(self, i, j):
-        return self.W[i, j]
+        return self.weight_matrix[i, j]
 
     def dfs(self, S, F):
         """ Determines all nodes accessible from the set of nodes S through the
@@ -137,8 +138,7 @@ if __name__ == '__main__':
     #    ])
 
     # Facebook subgraph
-    V, E = load_fb_subgraph(0)
-    W = compute_weights(V, E)
+    E, W, n = load_graph('twitter', 12831)
     # g = Graph(W)
 
     # im = IM(W)

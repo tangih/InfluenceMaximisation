@@ -40,12 +40,11 @@ class TIMOracle:
         self.epsilon = epsilon
         self.l = l
 
-    def random_RR_set(g):
-        v_0 = np.random.choice(g.V)
+    def random_RR_set(self, g):
+        v_0 = np.random.randint(g.nb_nodes)
         queue = [v_0]
         R = []
-        
-        while queue != []:
+        while len(queue) > 0:
             v = queue.pop()
             R.append(v)
             
@@ -54,13 +53,11 @@ class TIMOracle:
                     x = np.random.uniform()
                     if x < g.p(u, v):
                         queue.append(u)
-        
         return R
     
-    def width(g, R):
+    def width(self, g, R):
         return sum([len(g.in_neighbors(v)) for v in R])
-    
-    
+
     def KPT_estimation(self, g, k):
         n = g.nb_nodes
         m = len(g.E)
@@ -78,7 +75,7 @@ class TIMOracle:
         
         return 1
     
-    def node_selection(g, k, theta):
+    def node_selection(self, g, k, theta):
         
         R_list = []
         S = []
