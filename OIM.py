@@ -7,6 +7,7 @@ class Graph:
     
     def __init__(self, E, W, n):
         self.nb_nodes = n
+        self.nb_edges = len(E)
         self.weight_matrix = np.zeros((n, n), dtype=np.float)
         self.E = E
         self.in_neighb = [[] for _ in range(n)]

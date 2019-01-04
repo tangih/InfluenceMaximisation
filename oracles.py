@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.special import binom as binom
-
+import progressbar
 
 class MonteCarloOracle:
 
@@ -34,22 +34,25 @@ class MonteCarloOracle:
         return S
     
     
-class TIMOracle:
+class TIM_Oracle:
     
-    def __init__(self, epsilon, l):
+    def __init__(self, graph, epsilon, l):
+        self.g = graph
+        self.n = graph.nb_nodes
+        self.m = graph.nb_edges
         self.epsilon = epsilon
         self.l = l
 
-    def random_RR_set(self, g):
+    def random_rr_set(self):
         v_0 = np.random.randint(g.nb_nodes)
         queue = [v_0]
         R = []
-        visited = [False for _ in range(g.nb_nodes)]
+        visited = [False for _ in range(self.n)]
         while len(queue) > 0:
             v = queue.pop()
             R.append(v)
             visited[v] = True
-            neighbours, weights = g.in_neighbours(v)
+            neighbours, weights = self.g.in_neighbours(v)
             
             for w, u in list(zip(weights, neighbours)):
                 if u not in R:
@@ -58,60 +61,49 @@ class TIMOracle:
                         queue.append(u)
         return R
     
-    def width(self, g, R):
-        return sum([len(g.in_neighbors(v)) for v in R])
+    def width(self, R):
+        return sum([len(self.g.in_neighbors(v)) for v in R])
 
-    def KPT_estimation(self, g, k):
-        n = g.nb_nodes
-        m = len(g.E)
-        c = 6 * self.l * np.log(n) + 6 * np.log(np.log2(n))
-        
-        for i in range(1, int(np.log2(n))):
+    def kpt_estimation(self, k):
+        c = 6 * self.l * np.log(self.n) + 6 * np.log(np.log2(self.n))
+
+        print('KPT estimation:')
+        for i in progressbar.ProgressBar(range(1, int(np.log2(self.n)))):
             s = 0
-            print("Step {} of KPT estimation".format(i))
             c *= 2
             for j in range(1, int(c)):
-                R = TIMOracle.random_RR_set(g)
-                s+= 1 - pow(1 - TIMOracle.width(g, R) / m, k)
-            if ((s / c) > (pow(2, -i))):
-                return (n * s) / (2 * c)
-        
+                R = self.random_rr_set()
+                s += 1 - pow(1 - self.width(R) / self.m, k)
+            if s / c > pow(2, -i):
+                return (self.n * s) / (2 * c)
         return 1
     
-    def node_selection(self, g, k, theta):
-        
+    def node_selection(self, k, theta):
         R_list = []
         S = []
-        non_chosen = g.V.copy()
+        print('Node selection:')
+        for _ in progressbar.ProgressBar(range(int(theta))):
+            R_list.append(self.random_rr_set())
         
-        for i in range(int(theta)):
-            if (i % 10000) == 0:
-                print("Step {} of node selection RR sets generation".format(i))
-            R_list.append(TIMOracle.random_RR_set(g))
-        
-        values = [sum([v in R for R in R_list]) for v in g.V]
+        values = [sum([v in R for R in R_list]) for v in range(self.n)]
         for t in range(k):
             v_t = np.argmax(values)
             S.append(v_t)
-            non_chosen.remove(v_t)
-            values[v_t] = - np.inf
-        
+            values[v_t] = -np.inf
         return S
         
-    def approx(self, g, k):
-        
-        n = g.nb_nodes
-        KPT = self.KPT_estimation(g, k)
+    def approx(self, k):
+        kpt = self.kpt_estimation(k)
         print("Finished KPT estimation")
-        print("KPT : ", KPT)
-        lbda = (8 + 2 * self.epsilon) * n
-        lbda *= (self.l * np.log(n) + np.log(binom(n, k)) + np.log(2))
+        print("KPT : ", kpt)
+        lbda = (8 + 2 * self.epsilon) * self.n
+        lbda *= (self.l * np.log(self.n) + np.log(binom(self.n, k)) + np.log(2))
         lbda *= pow(self.epsilon, -2)
-        theta = lbda / KPT
+        theta = lbda / kpt
         print("Theta : ", theta)
     
         print("Beginning node selection")
-        return TIMOracle.node_selection(g, k, theta)
+        return self.node_selection(k, theta)
     
     
 def l_parameter(n, p):
