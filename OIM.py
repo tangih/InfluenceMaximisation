@@ -10,19 +10,22 @@ class Graph:
         self.weight_matrix = np.zeros((n, n), dtype=np.float)
         self.E = E
         self.in_neighb = [[] for _ in range(n)]
+        self.in_weights = [[] for _ in range(n)]
         self.out_neighb = [[] for _ in range(n)]
+        self.out_weights = [[] for _ in range(n)]
 
         for k, (i, j) in enumerate(E):
-            self.weight_matrix[i, j] = W[k]
-            self.E = [(e[0][i], e[1][i]) for i in range(len(e[0]))]
+            self.weight_matrix[i, j] = W[k]  # has to be removed for sparse graphs
             self.in_neighb[j].append(i)
+            self.in_weights[j].append(W[k])
             self.out_neighb[i].append(j)
+            self.out_weights[i].append(W[k])
 
-    def in_neighbors(self, i):
-        return self.in_neighb[i]
+    def in_neighbours(self, i):
+        return self.in_neighb[i], self.in_weights[i]
         
-    def out_neighbors(self, i):
-        return self.out_neighb[i]
+    def out_neighbours(self, i):
+        return self.out_neighb[i], self.out_weights[i]
 
     def p(self, i, j):
         return self.weight_matrix[i, j]

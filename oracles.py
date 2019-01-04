@@ -44,14 +44,17 @@ class TIMOracle:
         v_0 = np.random.randint(g.nb_nodes)
         queue = [v_0]
         R = []
+        visited = [False for _ in range(g.nb_nodes)]
         while len(queue) > 0:
             v = queue.pop()
             R.append(v)
+            visited[v] = True
+            neighbours, weights = g.in_neighbours(v)
             
-            for u in g.in_neighbors(v):
+            for w, u in list(zip(weights, neighbours)):
                 if u not in R:
                     x = np.random.uniform()
-                    if x < g.p(u, v):
+                    if x < w:
                         queue.append(u)
         return R
     
