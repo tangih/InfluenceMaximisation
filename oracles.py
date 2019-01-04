@@ -3,28 +3,32 @@ from scipy.special import binom as binom
 import progressbar
 
 class MonteCarloOracle:
+    """
+    Implementation of Kempe et al.'s greedy oracle
+    """
 
-    def __init__(self, l):
+    def __init__(self, graph, l):
+        self.g = graph
         self.l = l
 
-    def expected_spread(self, g, S):
+    def expected_spread(self, S):
         """ Approximates the expected number of influenced nodes f(S),
         starting with seed set S, by averaging l simulations """
         r_hat = 0
         for i in range(self.l):
-            _, _, reward = g.run(S)
+            _, _, reward = self.g.spread(S)
             r_hat += reward
         return int(r_hat / self.l)
 
-    def approx(self, g, k):
+    def approx(self, k):
         S = []
-        non_chosen = g.V.copy()
+        non_chosen = self.g.V.copy()
 
         for t in range(k):
             values = []
-            for v in g.V:
+            for v in self.g.V:
                 if v in non_chosen:
-                    values.append(self.expected_spread(g, S + [v]))
+                    values.append(self.expected_spread(S + [v]))
                 else:
                     values.append(- np.inf)
             v_t = np.argmax(values)
@@ -35,7 +39,9 @@ class MonteCarloOracle:
     
     
 class TIM_Oracle:
-    
+    """
+    Implementation of Tang et al.'s Two-phase Influence Maximisation (TIM) oracle
+    """
     def __init__(self, graph, epsilon, l):
         self.g = graph
         self.n = graph.nb_nodes
@@ -44,7 +50,7 @@ class TIM_Oracle:
         self.l = l
 
     def random_rr_set(self):
-        v_0 = np.random.randint(g.nb_nodes)
+        v_0 = np.random.randint(self.n)
         queue = [v_0]
         R = []
         visited = [False for _ in range(self.n)]

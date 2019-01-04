@@ -1,6 +1,6 @@
 import numpy as np
-from oracles import MonteCarloOracle, TIMOracle, l_parameter
-from load_data import load_graph, compute_weights
+from oracles import MonteCarloOracle, TIM_Oracle, l_parameter
+from load_data import load_graph
 
 
 class Graph:
@@ -40,7 +40,7 @@ class Graph:
             v = stack.pop()
             if v not in visited:
                 visited.add(v)
-                neighbors_v = self.out_neighbors(v)
+                neighbors_v = self.out_neighbours(v)
                 to_visit = [w for w in neighbors_v if (v, w) in F]
                 stack.extend(list(set(to_visit) - visited))
         return visited
@@ -51,7 +51,7 @@ class IM(Graph):
     def __init__(self, W):
         super(IM, self).__init__(W)
 
-    def run(self, S):
+    def spread(self, S):
         assert (all(x in self.V for x in S)), "Seed set should be a subset of the graph nodes set"
         if len(S) != len(set(S)):
             print("Removing duplicates from the seed set")
@@ -143,7 +143,7 @@ if __name__ == '__main__':
 
     # Facebook subgraph
     E, W, n = load_graph('twitter', 12831)
-    # g = Graph(W)
+    g = Graph(E, W, n)
 
     # im = IM(W)
     # print("V : ", im.V)
@@ -157,14 +157,14 @@ if __name__ == '__main__':
     T = 10
     k = 2
 
-    l_MC = 200 # number of simulations used for the Monte-Carlo averages
-    MC = MonteCarloOracle(l_MC)
+    l_MC = 200  # number of simulations used for the Monte-Carlo averages
+    MC = MonteCarloOracle(g, l_MC)
 
     epsilon = 0.2  # performance criterion
     p = 0.95  # performance criterion
     l_TIM = l_parameter(alg.nb_nodes, p)
     print("l_TIM : ", l_TIM)
-    TIM = TIMOracle(epsilon, l_TIM)
+    TIM = TIM_Oracle(g, epsilon, l_TIM)
 
     # print("\nWith Monte Carlo oracle : ")
     # mu_hat, cumulated_reward = alg.bandit(T, k, MC)
