@@ -2,7 +2,13 @@ import numpy as np
 from scipy.special import binom as binom
 import progressbar
 
-class MonteCarloOracle:
+
+class Oracle:
+    def approx(self, k):
+        pass
+
+
+class MonteCarloOracle(Oracle):
     """
     Implementation of Kempe et al.'s greedy oracle
     """
@@ -38,7 +44,7 @@ class MonteCarloOracle:
         return S
     
     
-class TIM_Oracle:
+class TIM_Oracle(Oracle):
     """
     Implementation of Tang et al.'s Two-phase Influence Maximisation (TIM) oracle
     """

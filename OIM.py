@@ -68,10 +68,8 @@ class IM(Graph):
         #     print("Removing duplicates from the seed set")
         #     S = list(set(S))
         
-        # Initialize activated edges and triggered arms data structures
         activated_edges = []
-        triggered_arms = []
-        
+
         # Sample the arms (i.e. the edges) from their distribution
         # (independent Bernoulli variables)
         for (i, j) in self.E:
@@ -89,10 +87,10 @@ class IM(Graph):
 
 class CUCB(IM):
     # TODO: correct this
-    def __init__(self, W):
-        super(CUCB, self).__init__(W)
+    def __init__(self, E, W, n):
+        super(CUCB, self).__init__(E, W, n)
         
-    def oracle(self, o, mu, k):
+    def picked_action(self, oracle, mu, k):
         """ Returns an action S using oracle o and estimated probabilities 
         mu for the edges """
         
@@ -102,7 +100,7 @@ class CUCB(IM):
             
         print("Created the graph. Beginning approximation")
             
-        return o.approx(IM(W), k)
+        return oracle.approx(IM(E, W, n), k)
         
     def bandit(self, T, k, o):
         """ Online Influence Maximization Bandit
@@ -110,8 +108,8 @@ class CUCB(IM):
         k: maximum size of the seed sets used
         o: oracle used """
         
-        counts = {e : 0 for e in self.E}
-        mu_hat = {e : 1 for e in self.E}
+        counts = {e: 0 for e in self.E}
+        mu_hat = {e: 1 for e in self.E}
         cumulated_reward = 0
         
         for t in range(1, T + 1):
@@ -122,8 +120,8 @@ class CUCB(IM):
             for e in self.E:
                 c = counts[e]
                 rho[e] = np.inf if c == 0 else np.sqrt((3 * np.log(t)) / (2 * c))
-            mu_bar = {e : min(1, mu_hat[e] + rho[e]) for e in self.E}
-                
+            mu_bar = {e: min(1, mu_hat[e] + rho[e]) for e in self.E}
+
             # Draw action to play from the oracle
             print("Drawing action from the oracle")
             S = self.oracle(o, mu_bar, k)
