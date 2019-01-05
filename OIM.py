@@ -58,7 +58,6 @@ class Graph:
     
     
 class IM(Graph):
-    # TODO: correct this
     def __init__(self, E, W, n):
         super(IM, self).__init__(E, W, n)
 
@@ -86,21 +85,28 @@ class IM(Graph):
 
 
 class CUCB(IM):
-    # TODO: correct this
-    def __init__(self, E, W, n):
+    # TODO: debug this
+    def __init__(self, E, W, n, epsilon, l):
         super(CUCB, self).__init__(E, W, n)
+        self.epsilon = epsilon
+        self.l = l
         
-    def picked_action(self, oracle, mu, k):
+    def picked_action(self, mu, k):
         """ Returns an action S using oracle o and estimated probabilities 
         mu for the edges """
-        
-        W_hat = np.zeros([self.nb_nodes, self.nb_nodes])
-        for (i, j) in mu.keys():
-            W_hat[i, j] = mu[(i, j)]
+        weights = []
+        edges = []
+        for e in mu.keys():
+            weights.append(mu[e])
+            edges.append(e)
+        graph = Graph(edges, weights, self.nb_nodes)
+        # W_hat = np.zeros([self.nb_nodes, self.nb_nodes])
+        # for (i, j) in mu.keys():
+        #     W_hat[i, j] = mu[(i, j)]
             
         print("Created the graph. Beginning approximation")
-            
-        return oracle.approx(IM(E, W, n), k)
+        oracle = TIM_Oracle(graph, self.epsilon, self.l)
+        return oracle.action(k)
         
     def bandit(self, T, k, o):
         """ Online Influence Maximization Bandit
@@ -124,8 +130,8 @@ class CUCB(IM):
 
             # Draw action to play from the oracle
             print("Drawing action from the oracle")
-            S = self.oracle(o, mu_bar, k)
-            activated_edges, triggered_arms, reward = self.run(S)
+            S = self.picked_action(o, mu_bar, k)
+            activated_edges, triggered_arms, reward = self.spread(S)
             
             # Update counts, empirical means, and cumulated reward
             for e in triggered_arms:
@@ -135,21 +141,15 @@ class CUCB(IM):
             cumulated_reward += reward
         
         return mu_hat, cumulated_reward   
-    
+
 
 if __name__ == '__main__':
-    # Directed graph with 6 nodes
-    # W = np.array([
-    #        [0, 0.5, 0, 0, 0, 0],
-    #        [0, 0, 0.2, 0, 0, 0],
-    #        [0.2, 0, 0, 0, 0, 0],
-    #        [0, 0, 0.5, 0, 0.5, 0],
-    #        [0, 0, 0, 0, 0, 0],
-    #        [0, 0, 0, 0.5, 0.3, 0]
-    #    ])
 
-    # Facebook subgraph
-    E, W, n = load_graph('twitter', 12831)
+    graph_name = 'twitter'
+    graph_node = 12831
+    E, W, n = load_graph(graph_name, graph_node)
+    print('Loaded graph from {} dataset, node {}'.format(graph_name, graph_node))
+    print('Loaded {} vertices and {} edges'.format(n, len(E)))
     g = Graph(E, W, n)
 
     # im = IM(W)
@@ -160,15 +160,17 @@ if __name__ == '__main__':
     # print("Triggered arms : ", triggered_arms)
     # print("Reward : ", reward)
 
-    alg = CUCB(W)
     T = 10
     k = 2
 
-    l_MC = 200  # number of simulations used for the Monte-Carlo averages
-    MC = MonteCarloOracle(g, l_MC)
+    l_mc = 200  # number of simulations used for the Monte-Carlo averages
+    mc_oracle = MonteCarloOracle(g, l_mc)
 
     epsilon = 0.2  # performance criterion
     p = 0.95  # performance criterion
-    l_TIM = l_parameter(alg.nb_nodes, p)
+    l_TIM = l_parameter(n, p)
+    alg = CUCB(E, W, n, epsilon, l_TIM)
+
     print("l_TIM : ", l_TIM)
-    TIM = TIM_Oracle(g, epsilon, l_TIM)
+    tim_oracle = TIM_Oracle(g, epsilon, l_TIM)
+    tim_oracle.action(5)

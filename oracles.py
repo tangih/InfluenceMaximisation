@@ -4,7 +4,11 @@ import progressbar
 
 
 class Oracle:
-    def approx(self, k):
+    """
+    Abstract class for oracles
+    An oracle has to have a method action(k) returning the predicted k-set chosen
+    """
+    def action(self, k):
         pass
 
 
@@ -26,7 +30,7 @@ class MonteCarloOracle(Oracle):
             r_hat += reward
         return int(r_hat / self.l)
 
-    def approx(self, k):
+    def action(self, k):
         S = []
         non_chosen = self.g.V.copy()
 
@@ -76,21 +80,47 @@ class TIM_Oracle(Oracle):
     def width(self, R):
         return sum([len(self.g.in_neighbors(v)) for v in R])
 
-    def kpt_estimation(self, k):
+    def kpt_estimation(self, k, eps_):
         c = 6 * self.l * np.log(self.n) + 6 * np.log(np.log2(self.n))
 
-        print('KPT estimation:')
-        for i in progressbar.ProgressBar(range(1, int(np.log2(self.n)))):
+        print('KPT estimation')
+        over = False
+        kpt = 0
+        R_list = []
+        for i in range(1, int(np.log2(self.n))):
             s = 0
             c *= 2
+            R_list = []
             for j in range(1, int(c)):
                 R = self.random_rr_set()
+                R_list.append(R)
                 s += 1 - pow(1 - self.width(R) / self.m, k)
             if s / c > pow(2, -i):
-                return (self.n * s) / (2 * c)
-        return 1
-    
+                kpt = (self.n * s) / (2 * c)
+                over = True
+                break
+        if not over:
+            kpt = 1
+        print('KPT refinement')
+        S = []
+        values = [sum([v in R for R in R_list]) for v in range(self.n)]
+        for t in range(k):
+            v_t = np.argmax(values)
+            S.append(v_t)
+            values[v_t] = -np.inf
+
+        lbda_ = (2+eps_) * self.l * self.n * np.log(self.n) * np.power(eps_, -2)
+        theta_ = int(lbda_ / kpt)
+        R_list = []
+        print('Node selection:')
+        for _ in range(theta_):
+            R_list.append(self.random_rr_set())
+        f = # TODO: fraction of the RR sets in R_list that is covered by S
+        kpt_ = f * self.n / (1+eps_)
+        return max(kpt, kpt_)
+
     def node_selection(self, k, theta):
+        # TODO: is this correct ?
         R_list = []
         S = []
         print('Node selection:')
@@ -104,8 +134,8 @@ class TIM_Oracle(Oracle):
             values[v_t] = -np.inf
         return S
         
-    def approx(self, k):
-        kpt = self.kpt_estimation(k)
+    def action(self, k):
+        kpt = self.kpt_estimation(k)  # TODO: choice of eps_
         print("Finished KPT estimation")
         print("KPT : ", kpt)
         lbda = (8 + 2 * self.epsilon) * self.n
