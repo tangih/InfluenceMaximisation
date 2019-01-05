@@ -4,19 +4,28 @@ from load_data import load_graph
 
 
 class Graph:
-    
+    """
+    Implementation of a graph structure
+    For more efficiency, we use a sparse graph structure.
+    """
     def __init__(self, E, W, n):
+        """
+        creates the sparse graph structure
+        :param E: the list of edges
+        :param W: the associated weights to the edges contained in E
+        :param n: we ensure that V = \{1, ..., n\}
+        """
         self.nb_nodes = n
         self.nb_edges = len(E)
-        self.weight_matrix = np.zeros((n, n), dtype=np.float)
+        self.weight_matrix = np.zeros((n, n), dtype=np.float)  # TODO: remove this
         self.E = E
-        self.in_neighb = [[] for _ in range(n)]
-        self.in_weights = [[] for _ in range(n)]
-        self.out_neighb = [[] for _ in range(n)]
-        self.out_weights = [[] for _ in range(n)]
+        self.in_neighb = [[] for _ in range(n)]  # self.in_neighb[i] is the list of j s.t. (j, i) \in E
+        self.in_weights = [[] for _ in range(n)]  # the associated weigths to the edges contained in self.in_neighb
+        self.out_neighb = [[] for _ in range(n)]  # self.out_neighb[i] is the list of j s.t. (i, j) \in E
+        self.out_weights = [[] for _ in range(n)]  # the associated weigths to the edges contained in self.out_neighb
 
         for k, (i, j) in enumerate(E):
-            self.weight_matrix[i, j] = W[k]  # has to be removed for sparse graphs
+            self.weight_matrix[i, j] = W[k]  # TODO: remove this
             self.in_neighb[j].append(i)
             self.in_weights[j].append(W[k])
             self.out_neighb[i].append(j)
@@ -29,9 +38,11 @@ class Graph:
         return self.out_neighb[i], self.out_weights[i]
 
     def p(self, i, j):
+        # TODO: remove this
         return self.weight_matrix[i, j]
 
     def dfs(self, S, F):
+        # TODO: improve this
         """ Determines all nodes accessible from the set of nodes S through the
         subset of edges F, using the Depth-First Search algorithm """
         assert (all(x in self.E for x in F)), "Please provide a subset of edges of the graph"
@@ -47,15 +58,15 @@ class Graph:
     
     
 class IM(Graph):
-    
-    def __init__(self, W):
-        super(IM, self).__init__(W)
+    # TODO: correct this
+    def __init__(self, E, W, n):
+        super(IM, self).__init__(E, W, n)
 
     def spread(self, S):
-        assert (all(x in self.V for x in S)), "Seed set should be a subset of the graph nodes set"
-        if len(S) != len(set(S)):
-            print("Removing duplicates from the seed set")
-            S = list(set(S))
+        # assert (all(x in self.V for x in S)), "Seed set should be a subset of the graph nodes set"
+        # if len(S) != len(set(S)):
+        #     print("Removing duplicates from the seed set")
+        #     S = list(set(S))
         
         # Initialize activated edges and triggered arms data structures
         activated_edges = []
@@ -77,10 +88,9 @@ class IM(Graph):
 
 
 class CUCB(IM):
-    
+    # TODO: correct this
     def __init__(self, W):
         super(CUCB, self).__init__(W)
-        
         
     def oracle(self, o, mu, k):
         """ Returns an action S using oracle o and estimated probabilities 
@@ -93,7 +103,6 @@ class CUCB(IM):
         print("Created the graph. Beginning approximation")
             
         return o.approx(IM(W), k)
-        
         
     def bandit(self, T, k, o):
         """ Online Influence Maximization Bandit
@@ -165,13 +174,3 @@ if __name__ == '__main__':
     l_TIM = l_parameter(alg.nb_nodes, p)
     print("l_TIM : ", l_TIM)
     TIM = TIM_Oracle(g, epsilon, l_TIM)
-
-    # print("\nWith Monte Carlo oracle : ")
-    # mu_hat, cumulated_reward = alg.bandit(T, k, MC)
-    # print("mu_hat : ", mu_hat)
-    # print("cumulated_reward : ", cumulated_reward)
-
-    print("\nWith Two Phase Influence Maximization (TIM) oracle : ")
-    mu_hat, cumulated_reward = alg.bandit(T, k, TIM)
-    print("mu_hat : ", mu_hat)
-    print("cumulated_reward : ", cumulated_reward)

@@ -4,6 +4,12 @@ import graph_tool.all as gt
 
 
 def load_graph(network, node_id):
+    """
+    loads subgraph from SNAP dataset (https://snap.stanford.edu/data/)
+    :param network: name of the graph
+    :param node_id: id of the node to load
+    :return: E the list of edges, W the associated weight (ramdomly picked) and n s.t. V = \{1, ..., n\}
+    """
     path = os.path.join(network, '{}.edges'.format(node_id))
     assert os.path.exists(path), "File not found"
     with open(path, 'r') as file:
@@ -27,6 +33,9 @@ def load_graph(network, node_id):
 
 
 def draw_graph(E, W, n):
+    """
+    Draws the graph, using the same graph format as in load_graph
+    """
     g = gt.Graph()
     vertices = []
     for _ in range(n):
