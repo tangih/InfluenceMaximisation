@@ -28,7 +28,7 @@
 \subsection{Description}
 
 \begin{algorithm}
-\caption{Node selection}\label{oracle}
+\caption{Node selection}\label{alg:oracle}
 \hspace*{\algorithmicindent} \textbf{Input: } $G$, $k$, $\theta$\\
 \hspace*{\algorithmicindent} \textbf{Output: } a set $S_k^*$ of $k$ nodes from $G$
 \begin{algorithmic}[1]
@@ -40,12 +40,12 @@
 \State Add $v_j$ into $S_k^*$
 \State Remove from $\mathcal{R}$ all RR sets that are covered by $v_j$
 \EndFor
-\Return $S_k^*$
+\State\Return $S_k^*$
 \end{algorithmic}
 \end{algorithm}
 
 \begin{algorithm}
-\caption{$\text{KPT}^*$ estimation}\label{kptestimation}
+\caption{$\text{KPT}^*$ estimation}\label{alg:kptestimation}
 \hspace*{\algorithmicindent} \textbf{Input: } $G$, $k$\\
 \hspace*{\algorithmicindent} \textbf{Output: } estimated $\text{KPT}^*$
 \begin{algorithmic}[1]
@@ -58,16 +58,37 @@
 \State $s = s + \kappa(\mathcal{R})$
 \EndFor
 \If {$s/c_i > 1/2^i$}
-\Return $\text{KPT}^* = ns/(2c_i)$
-\Return $\text{KPT}^* = 1$
+\State\Return $\text{KPT}^* = ns/(2c_i)$
 \EndIf
+\State\Return $\text{KPT}^* = 1$
 \EndFor
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+\caption{Refine KPT}\label{alg:kptrefinement}
+\hspace*{\algorithmicindent} \textbf{Input: } $G$, $k$, $\text{KPT}^*$, $\epsilon'$\\
+\hspace*{\algorithmicindent} \textbf{Output: } Refined value $\text{KPT}^+$
+\begin{algorithmic}[1]
+\State Let $\mathcal{R}'$ be the set of all RR sets generated in the last iteration of Algorithm \ref{alg:kptestimation}.
+\State Initialize a node set $S'_k = \emptyset$
+\For {$j=1$ to $k$}
+\State Identify the node $v_j$ that covers the most RR sets in $\mathcal{R}'$.
+\State Add $v_j$ into $S'_k$.
+\State Remove from $\mathcal{R}'$ all RR sets that are covered by $v_j$.
+\EndFor
+\State Let $\lambda' = (2+\epsilon')ln (\epsilon')^{-2} \log n$
+\State Let $\theta' = \lambda' / \text{KPT}^*$
+\State Generate $\theta'$ random RR sets; put them into a set $\mathcal{R}''$
+\State Let $f$ be the fraction of the RR sets in $\mathcal{R}''$ that is covered by $S'_k$
+\State Let $\text{KPT}' = fn/(1+\epsilon')$
+\State\Return $\text{KPT}^+ = \max\{\text{KPT}', \text{KPT}^*\}$
 \end{algorithmic}
 \end{algorithm}
 
 
 \begin{algorithm}
-\caption{CUCB with computation oracle}\label{cucb}
+\caption{CUCB with computation oracle}\label{alg:cucb}
 \hspace*{\algorithmicindent} \textbf{Input: } $m$, Oracle
 \begin{algorithmic}[1]
 \State For each arm $i$, $T_i = 0$ (maintain the total number of times arm $i$ is played so far)
