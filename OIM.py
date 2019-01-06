@@ -85,13 +85,11 @@ class IM(Graph):
 
 
 class CUCB(IM):
-    # TODO: debug this
-    def __init__(self, E, W, n, epsilon, l):
+    def __init__(self, E, W, n):
         super(CUCB, self).__init__(E, W, n)
-        self.epsilon = epsilon
-        self.l = l
         
-    def picked_action(self, mu, k):
+        
+    def picked_action(self, mu, k, o):
         """ Returns an action S using oracle o and estimated probabilities 
         mu for the edges """
         weights = []
@@ -99,14 +97,13 @@ class CUCB(IM):
         for e in mu.keys():
             weights.append(mu[e])
             edges.append(e)
-        graph = Graph(edges, weights, self.nb_nodes)
+        graph = IM(edges, weights, self.nb_nodes)
         # W_hat = np.zeros([self.nb_nodes, self.nb_nodes])
         # for (i, j) in mu.keys():
         #     W_hat[i, j] = mu[(i, j)]
             
-        print("Created the graph. Beginning approximation")
-        oracle = TIM_Oracle(graph, self.epsilon, self.l)
-        return oracle.action(k)
+#        print("Created the graph. Beginning approximation")
+        return o.action(graph, k)
         
     def bandit(self, T, k, o):
         """ Online Influence Maximization Bandit
@@ -129,8 +126,8 @@ class CUCB(IM):
             mu_bar = {e: min(1, mu_hat[e] + rho[e]) for e in self.E}
 
             # Draw action to play from the oracle
-            print("Drawing action from the oracle")
-            S = self.picked_action(o, mu_bar, k)
+#            print("Drawing action from the oracle")
+            S = self.picked_action(mu_bar, k, o)
             activated_edges, triggered_arms, reward = self.spread(S)
             
             # Update counts, empirical means, and cumulated reward
@@ -152,25 +149,28 @@ if __name__ == '__main__':
     print('Loaded {} vertices and {} edges'.format(n, len(E)))
     g = Graph(E, W, n)
 
-    # im = IM(W)
-    # print("V : ", im.V)
-    # print("E : ", im.E)
-    # activated_edges, triggered_arms, reward = im.run([3])
-    # print("Activated edges : ", activated_edges)
-    # print("Triggered arms : ", triggered_arms)
-    # print("Reward : ", reward)
+    T = 100
+    k = 5
 
-    T = 10
-    k = 2
+    l_mc = 3  # number of simulations used for the Monte-Carlo averages
+    mc_oracle = MonteCarloOracle(l_mc)
 
-    l_mc = 200  # number of simulations used for the Monte-Carlo averages
-    mc_oracle = MonteCarloOracle(g, l_mc)
-
-    epsilon = 0.2  # performance criterion
+    epsilon = 0.1  # performance criterion
     p = 0.95  # performance criterion
     l_TIM = l_parameter(n, p)
-    alg = CUCB(E, W, n, epsilon, l_TIM)
-
-    print("l_TIM : ", l_TIM)
-    tim_oracle = TIM_Oracle(g, epsilon, l_TIM)
-    tim_oracle.action(5)
+    tim_oracle = TIM_Oracle(epsilon, l_TIM)
+    
+#    S = tim_oracle.action(g, 5)
+#    print("S : ", S)
+    
+    alg = CUCB(E, W, n)
+    
+#    print("\nWith Monte Carlo oracle : ")
+#    mu_hat, cumulated_reward = alg.bandit(T, k, mc_oracle)
+##    print("mu_hat : ", mu_hat)
+#    print("cumulated_reward : ", cumulated_reward)
+    
+    print("\nWith Two Phase Influence Maximization (TIM) oracle : ")
+    mu_hat, cumulated_reward = alg.bandit(T, k, tim_oracle)
+#    print("mu_hat : ", mu_hat)
+    print("cumulated_reward : ", cumulated_reward)

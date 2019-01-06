@@ -6,9 +6,9 @@ import progressbar
 class Oracle:
     """
     Abstract class for oracles
-    An oracle has to have a method action(k) returning the predicted k-set chosen
+    An oracle has to have a method action(g, k) returning the predicted k-set chosen from graph g
     """
-    def action(self, k):
+    def action(self, g, k):
         pass
 
 
@@ -17,33 +17,28 @@ class MonteCarloOracle(Oracle):
     Implementation of Kempe et al.'s greedy oracle
     """
 
-    def __init__(self, graph, l):
-        self.g = graph
+    def __init__(self, l):
         self.l = l
 
-    def expected_spread(self, S):
+    def expected_spread(self, g, S):
         """ Approximates the expected number of influenced nodes f(S),
         starting with seed set S, by averaging l simulations """
         r_hat = 0
         for i in range(self.l):
-            _, _, reward = self.g.spread(S)
+            _, _, reward = g.spread(S)
             r_hat += reward
         return int(r_hat / self.l)
 
-    def action(self, k):
+    def action(self, g, k):
+        
         S = []
-        non_chosen = self.g.V.copy()
-
+        
         for t in range(k):
-            values = []
-            for v in self.g.V:
-                if v in non_chosen:
-                    values.append(self.expected_spread(S + [v]))
-                else:
-                    values.append(- np.inf)
+            values = [self.expected_spread(g, S + [v]) for v in range(g.nb_nodes)]
+            for v in S:
+                values[v] = - np.inf
             v_t = np.argmax(values)
             S.append(v_t)
-            non_chosen.remove(v_t)
 
         return S
     
@@ -52,23 +47,20 @@ class TIM_Oracle(Oracle):
     """
     Implementation of Tang et al.'s Two-phase Influence Maximisation (TIM) oracle
     """
-    def __init__(self, graph, epsilon, l):
-        self.g = graph
-        self.n = graph.nb_nodes
-        self.m = graph.nb_edges
+    def __init__(self, epsilon, l):
         self.epsilon = epsilon
         self.l = l
 
-    def random_rr_set(self):
-        v_0 = np.random.randint(self.n)
+    def random_rr_set(self, g):
+        v_0 = np.random.randint(g.nb_nodes)
         queue = [v_0]
         R = []
-        visited = [False for _ in range(self.n)]
+        visited = [False for _ in range(g.nb_nodes)]
         while len(queue) > 0:
             v = queue.pop()
             R.append(v)
             visited[v] = True
-            neighbours, weights = self.g.in_neighbours(v)
+            neighbours, weights = g.in_neighbours(v)
             
             for w, u in list(zip(weights, neighbours)):
                 if u not in R:
@@ -77,75 +69,98 @@ class TIM_Oracle(Oracle):
                         queue.append(u)
         return R
     
-    def width(self, R):
-        return sum([len(self.g.in_neighbors(v)) for v in R])
+    def width(self, g, R):
+        return sum([len(g.in_neighb[v]) for v in R])
 
-    def kpt_estimation(self, k, eps_):
-        c = 6 * self.l * np.log(self.n) + 6 * np.log(np.log2(self.n))
+    def kpt_estimation(self, g, k):
+        c = 6 * self.l * np.log(g.nb_nodes) + 6 * np.log(np.log2(g.nb_nodes))
+        eps_= 5 * np.power((self.l * pow(self.epsilon, 2)) / (k + self.epsilon), 1 / 3)
 
-        print('KPT estimation')
+#        print('KPT estimation')
         over = False
         kpt = 0
         R_list = []
-        for i in range(1, int(np.log2(self.n))):
+        for i in range(1, int(np.log2(g.nb_nodes))):
             s = 0
             c *= 2
             R_list = []
             for j in range(1, int(c)):
-                R = self.random_rr_set()
+                R = self.random_rr_set(g)
                 R_list.append(R)
-                s += 1 - pow(1 - self.width(R) / self.m, k)
+                s += 1 - pow(1 - self.width(g, R) / g.nb_edges, k)
             if s / c > pow(2, -i):
-                kpt = (self.n * s) / (2 * c)
+                kpt = (g.nb_nodes * s) / (2 * c)
                 over = True
                 break
+            
         if not over:
             kpt = 1
-        print('KPT refinement')
+            return kpt
+            
+#        print('KPT refinement')
         S = []
-        values = [sum([v in R for R in R_list]) for v in range(self.n)]
+
         for t in range(k):
+            values = [sum([v in R for R in R_list]) for v in range(g.nb_nodes)]
+            for v in S:
+                values[v] = - np.inf
             v_t = np.argmax(values)
             S.append(v_t)
-            values[v_t] = -np.inf
+            R_list = [R for R in R_list if v_t not in R]
 
-        lbda_ = (2+eps_) * self.l * self.n * np.log(self.n) * np.power(eps_, -2)
+        lbda_ = (2 + eps_) * self.l * g.nb_nodes * np.log(g.nb_nodes) * np.power(eps_, -2)
         theta_ = int(lbda_ / kpt)
+#        print("lbda_ : ", lbda_)
+#        print("kpt : ", kpt)
+#        print("theta_ : ", theta_)
         R_list = []
-        print('Node selection:')
         for _ in range(theta_):
-            R_list.append(self.random_rr_set())
-        f = # TODO: fraction of the RR sets in R_list that is covered by S
-        kpt_ = f * self.n / (1+eps_)
+            R_list.append(self.random_rr_set(g))
+            
+        f = 1
+        if theta_ != 0:
+            f = sum([any(v in R for v in S) for R in R_list]) / len(R_list)
+            
+        kpt_ = f * g.nb_nodes / (1 + eps_)
+        
         return max(kpt, kpt_)
+    
 
-    def node_selection(self, k, theta):
-        # TODO: is this correct ?
+    def node_selection(self, g, k, theta):
+        
         R_list = []
         S = []
-        print('Node selection:')
-        for _ in progressbar.ProgressBar(range(int(theta))):
-            R_list.append(self.random_rr_set())
         
-        values = [sum([v in R for R in R_list]) for v in range(self.n)]
+        for _ in range(int(theta)):
+            R_list.append(self.random_rr_set(g))
+        
+        
+#        print('Node selection:')
+#        for _ in progressbar.ProgressBar(range(int(theta))):
+#            R_list.append(self.random_rr_set(g))
+
         for t in range(k):
+            values = [sum([v in R for R in R_list]) for v in range(g.nb_nodes)]
+            for v in S:
+                values[v] = - np.inf
             v_t = np.argmax(values)
             S.append(v_t)
-            values[v_t] = -np.inf
+            R_list = [R for R in R_list if v_t not in R]
+            
         return S
         
-    def action(self, k):
-        kpt = self.kpt_estimation(k)  # TODO: choice of eps_
-        print("Finished KPT estimation")
-        print("KPT : ", kpt)
-        lbda = (8 + 2 * self.epsilon) * self.n
-        lbda *= (self.l * np.log(self.n) + np.log(binom(self.n, k)) + np.log(2))
+    def action(self, g, k):
+        kpt = self.kpt_estimation(g, k)
+#        print("Finished KPT estimation")
+#        print("KPT : ", kpt)
+        lbda = (8 + 2 * self.epsilon) * g.nb_nodes
+        lbda *= (self.l * np.log(g.nb_nodes) + np.log(binom(g.nb_nodes, k)) + np.log(2))
         lbda *= pow(self.epsilon, -2)
         theta = lbda / kpt
-        print("Theta : ", theta)
+#        print("Theta : ", theta)
     
-        print("Beginning node selection")
-        return self.node_selection(k, theta)
+#        print("Beginning node selection")
+        return self.node_selection(g, k, theta)
     
     
 def l_parameter(n, p):
