@@ -84,9 +84,9 @@ class IM(Graph):
         return activated_edges, triggered_arms, len(influenced_nodes)
 
 
-class CUCB(IM):
+class Bandit(IM):
     def __init__(self, E, W, n):
-        super(CUCB, self).__init__(E, W, n)
+        super(Bandit, self).__init__(E, W, n)
         
         
     def picked_action(self, mu, k, o):
@@ -105,8 +105,9 @@ class CUCB(IM):
 #        print("Created the graph. Beginning approximation")
         return o.action(graph, k)
         
-    def bandit(self, T, k, o):
-        """ Online Influence Maximization Bandit
+    def cucb(self, T, k, o):
+        """
+        Online Influence Maximization Bandit, using the CUCB algorithm
         T: number of times steps
         k: maximum size of the seed sets used
         o: oracle used """
@@ -139,6 +140,36 @@ class CUCB(IM):
         
         return mu_hat, cumulated_reward   
 
+    def thompson(self, T, k, o):
+        """
+        Thompson sampling algorihm
+        Similar usage to CUCB
+        """
+        cum_rew = {e: 0 for e in self.E}
+        count = {e: 0 for e in self.E}
+        cumulated_reward = 0
+
+        for t in range(1, T + 1):
+            print("Time step : ", t)
+
+            mu_tilde = {}
+            for e in self.E:
+                mu_tilde[e] = np.random.beta(cum_rew[e] + 1, count[e] - cum_rew[e] + 1)
+
+            # Draw action to play from the oracle
+            #            print("Drawing action from the oracle")
+            S = self.picked_action(mu_tilde, k, o)
+            activated_edges, triggered_arms, reward = self.spread(S)
+
+            # Update counts, empirical means, and cumulated reward
+            for e in triggered_arms:
+                count[e] += 1
+                X = 1 if e in activated_edges else 0
+                cum_rew[e] += X
+            cumulated_reward += reward
+
+        return mu_hat, cumulated_reward
+
 
 if __name__ == '__main__':
 
@@ -163,7 +194,7 @@ if __name__ == '__main__':
 #    S = tim_oracle.action(g, 5)
 #    print("S : ", S)
     
-    alg = CUCB(E, W, n)
+    alg = Bandit(E, W, n)
     
 #    print("\nWith Monte Carlo oracle : ")
 #    mu_hat, cumulated_reward = alg.bandit(T, k, mc_oracle)
@@ -171,6 +202,6 @@ if __name__ == '__main__':
 #    print("cumulated_reward : ", cumulated_reward)
     
     print("\nWith Two Phase Influence Maximization (TIM) oracle : ")
-    mu_hat, cumulated_reward = alg.bandit(T, k, tim_oracle)
+    mu_hat, cumulated_reward = alg.cucb(T, k, tim_oracle)
 #    print("mu_hat : ", mu_hat)
     print("cumulated_reward : ", cumulated_reward)

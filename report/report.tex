@@ -100,13 +100,32 @@ The algorithm proposed by Wang et Chen~\cite{wang2017improving}, called CUCB, is
 \State For each arm $i\in[m]$, $\rho_i = \sqrt{\frac{3\log t}{2T_i}}$ (the confidence radius $\rho_i = +\infty$ if $T_i = 0$)
 \State For each arm $i\in[m]$, $\bar{\mu}_i = \min\{\hat{\mu}_i + \rho_i, 1\}$ (the upper confidence bound)
 \State $S = \text{Oracle}(\bar{\mu}_1, ..., \bar{\mu}_m)$
-\State Play action $S$, which triggers a set $\tau \subseteq[m]$ of base arms with feedback $X_i^{(t)}, s, i\in\tau$
+\State Play action $S$, which triggers a set $\tau \subseteq[m]$ of base arms with feedback $X_i^{(t)}, i\in\tau$
 \State For every $i\in\tau$, update $T_i$ and $\hat{\mu}_i$: $T_i = T_i+1$, $\hat{\mu}_i = \hat{\mu}_i + (X_i^{(t)} - \hat{\mu}_i) / T_i$
 \EndFor
 \end{algorithmic}
 \end{algorithm}
 
 The oracle we use is the TIM algorithm proposed by Tang et al.~\cite{tang2014influence} (see subsection \ref{sscn:oracle} for details)
+
+\subsection{Thompson sampling}
+
+We also implement the Thomson sampling method~\cite{thompson1933likelihood} to compare with the result obtained with the CUCB algorithm. The pseudo is detailled in algorithm \ref{alg:thompson}.
+
+\begin{algorithm}
+\caption{Thompson sampling with computation oracle}\label{alg:thompson}
+\hspace*{\algorithmicindent} \textbf{Input: } $m$, Oracle
+\begin{algorithmic}[1]
+\State For each arm $i$, $S_i = 0$ (maintain the sum of rewards gathered from pulling arm $i$)
+\State For each arm $i$, $N_i = 0$ (maintain the number of times the arm $i$ is pulled)
+\For {$i = 1,2,3, ...$}
+\State For each arm $i$, draw a mean sample $\tilde{\mu}_i \sim \text{Beta}(S_i + 1, N_i - S_i + 1)$
+\State $S = \text{Oracle}(\tilde{\mu_1}, ..., \tilde{\mu}_m)$.
+\State Play action $S$, which triggers a set $\tau \subseteq[m]$ of base arms with feedback $X_i^{(t)}, i\in\tau$
+\State For each arm $i\in\tau$, update $S_i = S_i + X_i^{(t)}$ and $N_i = N_i + 1$.
+\EndFor
+\end{algorithmic}
+\end{algorithm}
 
 \subsection{Regret bound}
 
@@ -127,8 +146,6 @@ For the CUCB algorithm on a CMAB-T problem instance that satisfies monotonicity 
 where $\tilde{S} = \{i\in[m], p_i^{D, S} > 0\}$ and $K = \max_{S\in\mathcal{S}}|\tilde{S}|$.
 
 The obtained regret bound is almost tight, since lower bound results~\cite{kveton2015tight} indicate that for linear bandits, the regret is $\Omega(\sqrt{mKT})$. This result also improves several former results on subproblems of CMAB-T~\cite{chen2016combinatorial,kveton2015tight,kveton2015combinatorial,wen2016online}
-
-
 
 \subsection{Oracle}
 \label{sscn:oracle}
