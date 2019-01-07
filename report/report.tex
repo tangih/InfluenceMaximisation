@@ -1,4 +1,4 @@
-\documentclass[a4paper,10pt]{article}
+\documentclass[a4paper,12pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[final]{neurips_2018}
 \usepackage{amsmath}
@@ -14,18 +14,111 @@
 \maketitle
 
 \begin{abstract}
-
+\begin{center}
+ \textbf{Need to write it at the end }
+\end{center}
 \end{abstract}
 
 \section{Introduction}
+\label{scn:intro}
 
 \subsection{Motivation}
 
+The study of social networks play an important role in understanding the spread of ideas, technologies and influence among its members, and has a lot of practical and commercial applications. The underlying idea behind the concept of influence maximization is that an idea circulating through a social network can either die out or spread rapidly, depending on the influence people can have on their peers, and the extent to which they are affected by their decisions. Thus, the underlying problem posed is to choose where to implent an idea in a social network to maximize the idea's propagation. This problem is named \emph{social influence maximization}, and has a lot of practical applications, including innovation propagation~\cite{coleman1966medical}, viral marketing~\cite{bass1976new}, etc.
+
+There are several formulations of the problem, depending on the amount of information the player has. However, the optimal solution for this problem is NP-hard for most models that have been studied, notably the model in ~\cite{domingos2001mining}.
+
 \subsection{Previous work}
 
+We study some of the work that has been done on similar subjects. Note that in our setting, the influence between nodes of the social network is unknown, and therefore our problem can be seen as an example of a bandit problem.
+
+\subsubsection{Multi-Armed Bandit}
+
+In probability theory, the multi-armed bandit problem is a classic reinforcement learning problem that exemplifies the exploration-exploitation tradeoff dilemna, where the player has to maximize its gain over an environment he only has partial knowledge about. At each round % TODO: description
+
+Notably, one of the proposed approach to this problem is the \emph{Upper Confidence Bound} algorithm (UCB)~\cite{li2010contextual}. This algorithm consists in adding to the estimated mean of each arm a confidence bound, corresponding to an optimism bonus towards uncertainty. This allows to perform exploration of the arms that have not been used a lot yet.
+
+CMAB/CMAB-T?
+
+UCB~\cite{li2010contextual}, Thompson sampling ~\cite{thompson1933likelihood}, previous article
+
+\subsubsection{Influence maximization}
+
+Social influence maximization was first modeled as an algorithmic problem by Kempe et al.~\cite{kempe2003maximizing}. Due to the intrinsic complexity of the problem, most work consist in finding appproximate solution. Kempe et al.~\cite{kempe2003maximizing} proposed a simple and efficient greedy algorithm that allows to get a $(1-1/e-\epsilon)$ approximation of the solution, however it is computationnaly expensive. In particular, it has $\Omega(k\cdot|V|\cdot|E|\cdot\text{Poly}(1/\epsilon))$, which makes it unusable on large graphs. A significant improvement was done by Borgs et al.~\cite{borgs2014maximizing}, who proposed an algorithm that yields an $(1-1/e-\epsilon)$-approximate solution with probability at least $1-n^{-l}$, and with a time complexity $O(kl^2(m+n)\log^2 n / \epsilon^3)$. Although this method is theoretically near-optimal, since any other algorithm that provides the same approx-
+imation guarantee and succeeds with at least a constant probability must run in $\Omega(m + n)$ time~\cite{borgs2014maximizing}, it is practically unsatisfactory because it is very slow, due to a large hidden multiplicative constant in the runtime bound. Tang et al.~\cite{tang2014influence} proposed another algorithm, called \emph{Two-Phase Influence Maximization} (TIM), that ensures near optimal runtime $O((k + l)(n + m) log n/\epsilon^2)$ and can be run efficiently on very large graphs.
+
+\subsubsection{Influence maximization bandit}
+
+The influence maximization bandit problem is pretty similar to the previous problem, except that the probability associated to the influence between nodes of the graph are not known. For this reason, the problem becomes equivalent to a bandit problem, since the player needs to estimate these probabilities while trying to maximize influence.
+
+\subsection{Our work}
+
+In this work, we study the algorithm proposed by Wang et Chen~\cite{wang2017improving} for the combinatorial semi-bandits setting to the online influence maximization problem. Since this algorithm uses an heuristics to perform the actual influence maximization, we also go into details about the choice of heuristic for this part of the optimization. We then perform some experiments on the Stanford Large Network Dataset Collection~\cite{leskovec2015snap}. In part \ref{scn:def} we formally define the problem, in part \ref{scn:algo} we describe the algorithm and the theorical guarantees associated, and in part \ref{scn:exp} we describe our experimentations.
+
+
+\section{Definitions}
+\label{scn:def}
+
+In order to formally define the online influence maximization problem, we first define the Combinatorial Multi-Armed Bandit problem, which will be necessary to our definition.
+
+\subsubsection{CMAB-T}
+
+The CMAB-T problem is defined as a learning game, as follows. The environment consists of $m$ arms, described as random variables $X = (X_1, ..., X_m)$ following a joint distribution $D\in_mathcal{D}$ over $[0, 1]^m$ fixed at the beginning of the game and unknown to the player.
+
+At time $t\in\mathbf{N}^*$, the player picks an action $s_t\in\mathcal{S}$ (where $\mathcal{S}$ is potentially infinite) and the environment draws a sample $x^{(t)} = (x^{(t)}_1, ..., x^{(t)}_m)$ of the variable $X$. The action $s_t$ triggers a set of arm $\tau_t$, so that the player has access to the values $(x_i)_{i\in\tau_t}$, which in turn yields a reward $R(s_t, x^{(t)}, \tau_t)$ to the player. The expected reward is assumed to be only a function of the expected value of $X$, that is if $\mu = (\mu_i)_{i\in\{1, ..., m\}} = (\mathbf{E}[X_i])_{i\in\{1, ..., m\}}$, then $\mathbf{E}[R(s_t, x^{(t)}, \tau_t)] = r_S(\mu)$.
+
+The goal of the player is to maximize the reward over time, or equivalently to minimize the regret, that is defined as the hypothetical loss due to not choosing the best action: 
+
+\begin{equation}
+ \label{eqn:regret}
+\text{Reg}_{\mu}(T) = T\sup_{s\in\mathcal{S}}r_S(\mu) - \sum_{t = 1}^{T}r_{s^{t}}(\mu)
+\end{equation}
+% TODO: transform to (\alpha, \beta) regret
+
+\subsubsection{Online influence maximization}
+
+In social influence maximization, we are given a weighted directed graph $(V, E, p)$, where $V$ is the set of vertices of the graph, $E\subseteq V\times V$ is the set of edges and $p:E\to [0, 1]$ are the probabilities associated to the edges. We then define the \emph{spread} of a k-seed set $S$. Initially, we choose $k$ vertices, which are the active nodes. Then at each iteration, we propagate the active vertices according to the following rule. If at time $(t-1)$ the vertex $u$ is active, let $v$ be s.t. $(u, v)\in E$, then at time $t$ $v$ becomes active with probability $p(u, v)$. This process goes on until there are no new active nodes. The \emph{spread} of $S$ is the cardinality of the vertices that have been reached by this process. The influence maximization problem consists in finding the seed set $S$ that maximizes the spread.
+
+A variant of this problem is the online influence maximization bandit~\cite{chen2016combinatorial}. In this setting, the difference is that the probabilities $p(u, v)$ are unknown to the player, and need to be learned over time. This problem is equivalent to a CMAB-T problem. At each iteration, the player chooses a seed set $S_t$, which triggers are certain number of edges: for an edge $e$, $X_e = 1$ with probability $p(e)$. The reward is then the spread of the seed set.
+
+
+
 \section{Algorithm}
+\label{scn:algo}
 
 \subsection{Description}
+
+\begin{algorithm}
+\caption{CUCB with computation oracle}\label{alg:cucb}
+\hspace*{\algorithmicindent} \textbf{Input: } $m$, Oracle
+\begin{algorithmic}[1]
+\State For each arm $i$, $T_i = 0$ (maintain the total number of times arm $i$ is played so far)
+\State For each arm $i$, $\hat{\mu}_i = 1$ (maintain the empirical mean of $X_i$)
+\For {t = 1, 2, 3, ...}
+\State For each arm $i\in[m]$, $\rho_i = \sqrt{\frac{3\log t}{2T_i}}$ (the confidence radius $\rho_i = +\infty$ if $T_i = 0$)
+\State For each arm $i\in[m]$, $\bar{\mu}_i = \min\{\hat{\mu}_i + \rho_i, 1\}$ (the upper confidence bound)
+\State $S = \text{Oracle}(\bar{\mu}_1, ..., \bar{\mu}_m)$
+\State Play action $S$, which triggers a set $\tau \subseteq[m]$ of base arms with feedback $X_i^{(t)}, s, i\in\tau$
+\State For every $i\in\tau$, update $T_i$ and $\hat{\mu}_i$: $T_i = T_i+1$, $\hat{\mu}_i = \hat{\mu}_i + (X_i^{(t)} - \hat{\mu}_i) / T_i$
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Regret bound}
+
+The authors prove a regret bound under the following conditions: 
+\paragraph{Condition 1: monotonicity}
+We say that a CMAB-T problem instance satisfies monotinicity, if for any action $S\in\mathcal{S}$, for any two distributions $D, D'\in\mathcal{D}$ with expectation vectors $\mu = (\mu_1, ..., \mu_m)$, and $\mu' = (\mu_1', ..., \mu_m')$, we have $r_S(\mu) \leq r_S(\mu')$ if $\forall i, \mu_i\leq \mu_i'$
+
+\paragraph{Condition 2: TPM}
+We say that a CMAB-T problem instance satisfies 1-norm TPM bounded smoothness, if there exists $B\in\mathbf{R}^+$ s.t. for any two distributions $D, D'\in\mathcal{D}$ with expectation vectors $\mu$ and $\mu'$, and any action $S$, we have $|r_S(\mu)-r_S(\mu')| \leq B\sum_{i\in[m]}p_i^{D,S} |\mu_i-\mu_i'|$
+
+% TODO: explanations about these conditions
+
+\paragraph{Theorem: regret bound}
+For the CUCB algorithm on a CMAB-T problem instance that satisfies monotonicity (condition 1) and 1-norm TPM bounded smoothness (condition 2) with bounded smoothness constant $B$, 
+
+\subsection{Oracle}
 
 \begin{algorithm}
 \caption{Node selection}\label{alg:oracle}
@@ -87,26 +180,14 @@
 \end{algorithm}
 
 
-\begin{algorithm}
-\caption{CUCB with computation oracle}\label{alg:cucb}
-\hspace*{\algorithmicindent} \textbf{Input: } $m$, Oracle
-\begin{algorithmic}[1]
-\State For each arm $i$, $T_i = 0$ (maintain the total number of times arm $i$ is played so far)
-\State For each arm $i$, $\hat{\mu}_i = 1$ (maintain the empirical mean of $X_i$)
-\For {t = 1, 2, 3, ...}
-\State For each arm $i\in[m]$, $\rho_i = \sqrt{\frac{3\log t}{2T_i}}$ (the confidence radius $\rho_i = +\infty$ if $T_i = 0$)
-\State For each arm $i\in[m]$, $\bar{\mu}_i = \min\{\hat{\mu}_i + \rho_i, 1\}$ (the upper confidence bound)
-\State $S = \text{Oracle}(\bar{\mu}_1, ..., \bar{\mu}_m)$
-\State Play action $S$, which triggers a set $\tau \subseteq[m]$ of base arms with feedback $X_i^{(t)}, s, i\in\tau$
-\State For every $i\in\tau$, update $T_i$ and $\hat{\mu}_i$: $T_i = T_i+1$, $\hat{\mu}_i = \hat{\mu}_i + (X_i^{(t)} - \hat{\mu}_i) / T_i$
-\EndFor
-\end{algorithmic}
-\end{algorithm}
-
 \subsection{Regret analysis}
 
 \section{Experiments}
+\label{scn:exp}
 
 \section{Conclusion}
+
+\bibliography{list}
+\bibliographystyle{plain}
 
 \end{document}
