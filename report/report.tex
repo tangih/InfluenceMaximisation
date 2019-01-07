@@ -26,30 +26,30 @@
 
 The study of social networks play an important role in understanding the spread of ideas, technologies and influence among its members, and has a lot of practical and commercial applications. The underlying idea behind the concept of influence maximization is that an idea circulating through a social network can either die out or spread rapidly, depending on the influence people can have on their peers, and the extent to which they are affected by their decisions. Thus, the underlying problem posed is to choose where to implent an idea in a social network to maximize the idea's propagation. This problem is named \emph{social influence maximization}, and has a lot of practical applications, including innovation propagation~\cite{coleman1966medical}, viral marketing~\cite{bass1976new}, etc.
 
-There are several formulations of the problem, depending on the amount of information the player has. However, the optimal solution for this problem is NP-hard for most models that have been studied, notably the model in ~\cite{domingos2001mining}.
+There are several formulations of the problem, depending on the amount of information the player has. However, the optimal solution for this problem is NP-hard for most models that have been studied, notably the model in ~\cite{domingos2001mining}. For this reason, most literature insists on finding appproximate solutions to the problem.
 
 \subsection{Previous work}
 
-We study some of the work that has been done on similar subjects. Note that in our setting, the influence between nodes of the social network is unknown, and therefore our problem can be seen as an example of a bandit problem.
+We study some of the work that has been done on this subject. Note that in our setting, the influence between nodes of the social network is unknown, and therefore our problem can be seen as an example of a bandit problem.
 
 \subsubsection{Multi-Armed Bandit}
 
-In probability theory, the multi-armed bandit problem is a classic reinforcement learning problem that exemplifies the exploration-exploitation tradeoff dilemna, where the player has to maximize its gain over an environment he only has partial knowledge about. At each round % TODO: description
+In probability theory, the multi-armed bandit problem is a classic reinforcement learning problem that exemplifies the exploration-exploitation tradeoff dilemna, where the player has to maximize its gain over an environment he only has partial knowledge about. At each round, the player chooses an arm and pulls it, and the environment rewards the player. The player then uses the feedback he gets to improve his estimate of the average reward of the arm he just pulled.
 
-Notably, one of the proposed approach to this problem is the \emph{Upper Confidence Bound} algorithm (UCB)~\cite{li2010contextual}. This algorithm consists in adding to the estimated mean of each arm a confidence bound, corresponding to an optimism bonus towards uncertainty. This allows to perform exploration of the arms that have not been used a lot yet.
+Notably, one of the proposed approach to this problem is the \emph{Upper Confidence Bound} algorithm (UCB)~\cite{li2010contextual}. This algorithm consists in adding to the estimated mean of each arm a confidence bound, corresponding to an optimism bonus towards uncertainty, and then choose the arm with the best score. This allows to perform exploration of the arms that have not been used a lot yet.
 
-CMAB/CMAB-T?
+Another known approach is the Thompson sampling algorithm~\cite{thompson1933likelihood}, which uses a bayesian approach to estimate the average rewards of the arms.
 
-UCB~\cite{li2010contextual}, Thompson sampling ~\cite{thompson1933likelihood}, previous article
+There exist many variants of the classical MAB problem. Particularly, we focus here on CMAB and CMAB-T variants. CMAB, or \emph{Combinatorial Multi-Armed Bandit}, differs from the classical MAB setting in that there is not a single triggered arm at each round, but a set of arms. The player chooses an action, which correspond to triggering several arms at a time. He thus get a wider feedback about the arms. Another variant, denoted as CMAB-T corresponds to the CMAB setting, except that a given action can trigger arms probabilistically. Thus, some arms may be difficult to trigger.
+
 
 \subsubsection{Influence maximization}
 
-Social influence maximization was first modeled as an algorithmic problem by Kempe et al.~\cite{kempe2003maximizing}. Due to the intrinsic complexity of the problem, most work consist in finding appproximate solution. Kempe et al.~\cite{kempe2003maximizing} proposed a simple and efficient greedy algorithm that allows to get a $(1-1/e-\epsilon)$ approximation of the solution, however it is computationnaly expensive. In particular, it has $\Omega(k\cdot|V|\cdot|E|\cdot\text{Poly}(1/\epsilon))$, which makes it unusable on large graphs. A significant improvement was done by Borgs et al.~\cite{borgs2014maximizing}, who proposed an algorithm that yields an $(1-1/e-\epsilon)$-approximate solution with probability at least $1-n^{-l}$, and with a time complexity $O(kl^2(m+n)\log^2 n / \epsilon^3)$. Although this method is theoretically near-optimal, since any other algorithm that provides the same approx-
-imation guarantee and succeeds with at least a constant probability must run in $\Omega(m + n)$ time~\cite{borgs2014maximizing}, it is practically unsatisfactory because it is very slow, due to a large hidden multiplicative constant in the runtime bound. Tang et al.~\cite{tang2014influence} proposed another algorithm, called \emph{Two-Phase Influence Maximization} (TIM), that ensures near optimal runtime $O((k + l)(n + m) log n/\epsilon^2)$ and can be run efficiently on very large graphs.
+Social influence maximization was first modeled as an algorithmic problem by Kempe et al.~\cite{kempe2003maximizing}. Due to the intrinsic complexity of the problem, most work consist in finding appproximate solution. Kempe et al.~\cite{kempe2003maximizing} proposed a simple and efficient greedy algorithm that allows to get a $(1-1/e-\epsilon)$ approximation of the solution, however it is computationnaly expensive. In particular, it has $\Omega(k\cdot|V|\cdot|E|\cdot\text{Poly}(1/\epsilon))$, which makes it unusable on large graphs. A significant improvement was done by Borgs et al.~\cite{borgs2014maximizing}, who proposed an algorithm that yields an $(1-1/e-\epsilon)$-approximate solution with probability at least $1-n^{-l}$, and with a time complexity $O(kl^2(m+n)\log^2 n / \epsilon^3)$. Although this method is theoretically near-optimal, since any other algorithm that provides the same approximation guarantee and succeeds with at least a constant probability must run in $\Omega(m + n)$ time~\cite{borgs2014maximizing}, it is practically unsatisfactory because it is very slow, due to a large hidden multiplicative constant in the runtime bound. Tang et al.~\cite{tang2014influence} proposed another algorithm, called \emph{Two-Phase Influence Maximization} (TIM), that ensures near optimal runtime $O((k + l)(n + m) log n/\epsilon^2)$ and can be run efficiently on very large graphs.
 
 \subsubsection{Influence maximization bandit}
 
-The influence maximization bandit problem is pretty similar to the previous problem, except that the probability associated to the influence between nodes of the graph are not known. For this reason, the problem becomes equivalent to a bandit problem, since the player needs to estimate these probabilities while trying to maximize influence.
+The influence maximization bandit problem is pretty similar to the previous problem, except that the probability associated to the influence between nodes of the graph are not known. For this reason, the problem becomes equivalent to a bandit problem, since the player needs to estimate these probabilities while trying to maximize influence. In particular, Chen et al.~\cite{chen2016combinatorial} study this problem and derive a lower bound for the expected regret of the algorithm.
 
 \subsection{Our work}
 
@@ -71,9 +71,8 @@ The goal of the player is to maximize the reward over time, or equivalently to m
 
 \begin{equation}
  \label{eqn:regret}
-\text{Reg}_{\mu}(T) = T\sup_{s\in\mathcal{S}}r_S(\mu) - \sum_{t = 1}^{T}r_{s^{t}}(\mu)
+\text{Reg}_{\mu, \alpha, \beta}(T) = T\cdot\alpha\cdot\beta\sup_{s\in\mathcal{S}}r_S(\mu) - \mathbf{E}\left[\sum_{t = 1}^{T}r_{s^{t}}(\mu)\right]
 \end{equation}
-% TODO: transform to (\alpha, \beta) regret
 
 \subsubsection{Online influence maximization}
 
@@ -87,6 +86,9 @@ A variant of this problem is the online influence maximization bandit~\cite{chen
 \label{scn:algo}
 
 \subsection{Description}
+
+The algorithm proposed by Wang et Chen~\cite{wang2017improving}, called CUCB, is a pretty straightforward UCB-type algorithm (see algorithm \ref{alg:cucb}, with a confidence radius $\rho_i = \sqrt{\frac{3\log t}{2T_i}}$, where $T_i$ is the number of times the arm $i$ has been pulled so far. Once the algorithm has computed the upper confidence bound $\bar{\mu}_i = \min\{\hat{\mu}_i + \rho_i, 1\}$, it uses an oracle to choose the action: the oracle is the function that picks the best action, based on the estimated upper confidence bounds. In our case, the oracle needs to predict the best seed set of $k$ nodes based on the estimated probabilities of the edges: this problem is the classical social influence maximization problem.
+
 
 \begin{algorithm}
 \caption{CUCB with computation oracle}\label{alg:cucb}
@@ -104,6 +106,8 @@ A variant of this problem is the online influence maximization bandit~\cite{chen
 \end{algorithmic}
 \end{algorithm}
 
+The oracle we use is the TIM algorithm proposed by Tang et al.~\cite{tang2014influence} (see subsection \ref{sscn:oracle} for details)
+
 \subsection{Regret bound}
 
 The authors prove a regret bound under the following conditions: 
@@ -113,12 +117,23 @@ We say that a CMAB-T problem instance satisfies monotinicity, if for any action 
 \paragraph{Condition 2: TPM}
 We say that a CMAB-T problem instance satisfies 1-norm TPM bounded smoothness, if there exists $B\in\mathbf{R}^+$ s.t. for any two distributions $D, D'\in\mathcal{D}$ with expectation vectors $\mu$ and $\mu'$, and any action $S$, we have $|r_S(\mu)-r_S(\mu')| \leq B\sum_{i\in[m]}p_i^{D,S} |\mu_i-\mu_i'|$
 
-% TODO: explanations about these conditions
+The first condition indicates that an increase of $\mu$ implies an increase in the reward, which is important to make the feedback we get on the arms useful to improve the reward. The second condition corresponds to a generalization of the linear condition used in linear bandits~\cite{kveton2015tight}.
 
 \paragraph{Theorem: regret bound}
-For the CUCB algorithm on a CMAB-T problem instance that satisfies monotonicity (condition 1) and 1-norm TPM bounded smoothness (condition 2) with bounded smoothness constant $B$, 
+For the CUCB algorithm on a CMAB-T problem instance that satisfies monotonicity (condition 1) and 1-norm TPM bounded smoothness (condition 2), the $(\alpha, \beta)$-regret satisfies:
+\begin{equation}
+ \text{Reg}_{\mu, \alpha, \beta}(T) = O(\sqrt{mKT\log T})
+\end{equation}
+where $\tilde{S} = \{i\in[m], p_i^{D, S} > 0\}$ and $K = \max_{S\in\mathcal{S}}|\tilde{S}|$.
+
+The obtained regret bound is almost tight, since lower bound results~\cite{kveton2015tight} indicate that for linear bandits, the regret is $\Omega(\sqrt{mKT})$. This result also improves several former results on subproblems of CMAB-T~\cite{chen2016combinatorial,kveton2015tight,kveton2015combinatorial,wen2016online}
+
+
 
 \subsection{Oracle}
+\label{sscn:oracle}
+
+% TODO: explanation of the algorithm
 
 \begin{algorithm}
 \caption{Node selection}\label{alg:oracle}
@@ -179,8 +194,6 @@ For the CUCB algorithm on a CMAB-T problem instance that satisfies monotonicity 
 \end{algorithmic}
 \end{algorithm}
 
-
-\subsection{Regret analysis}
 
 \section{Experiments}
 \label{scn:exp}
