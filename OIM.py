@@ -1,6 +1,7 @@
 import numpy as np
 from oracles import MonteCarloOracle, TIM_Oracle, l_parameter
 from load_data import load_graph
+import matplotlib.pyplot as plt
 
 
 class Graph:
@@ -51,8 +52,8 @@ class Graph:
             v = stack.pop()
             if v not in visited:
                 visited.add(v)
-                neighbors_v = self.out_neighbours(v)
-                to_visit = [w for w in neighbors_v if (v, w) in F]
+                out_neighbors_v, _ = self.out_neighbours(v)
+                to_visit = [w for w in out_neighbors_v if (v, w) in F]
                 stack.extend(list(set(to_visit) - visited))
         return visited
     
@@ -78,6 +79,7 @@ class IM(Graph):
                 
         # Determine the triggered arms and the influenced nodes
         influenced_nodes = self.dfs(S, activated_edges)
+
         triggered_arms = [e for e in self.E if e[0] in influenced_nodes]
         
         # Return the activated edges, the triggered arms and the reward
@@ -114,7 +116,7 @@ class Bandit(IM):
         
         counts = {e: 0 for e in self.E}
         mu_hat = {e: 1 for e in self.E}
-        cumulated_reward = 0
+        rewards = []
         
         for t in range(1, T + 1):
             print("Time step : ", t)
@@ -136,9 +138,9 @@ class Bandit(IM):
                 counts[e] += 1
                 X = 1 if e in activated_edges else 0
                 mu_hat[e] += (X - mu_hat[e]) / counts[e]
-            cumulated_reward += reward
+            rewards.append(reward)
         
-        return mu_hat, cumulated_reward   
+        return mu_hat, rewards
 
     def thompson(self, T, k, o):
         """
@@ -147,7 +149,7 @@ class Bandit(IM):
         """
         cum_rew = {e: 0 for e in self.E}
         count = {e: 0 for e in self.E}
-        cumulated_reward = 0
+        rewards = []
 
         for t in range(1, T + 1):
             print("Time step : ", t)
@@ -166,13 +168,14 @@ class Bandit(IM):
                 count[e] += 1
                 X = 1 if e in activated_edges else 0
                 cum_rew[e] += X
-            cumulated_reward += reward
+            rewards.append(reward)
 
-        return mu_hat, cumulated_reward
+        return mu_hat, rewards
 
 
 if __name__ == '__main__':
 
+    np.random.seed(0)
     graph_name = 'twitter'
     graph_node = 12831
     E, W, n = load_graph(graph_name, graph_node)
@@ -180,14 +183,14 @@ if __name__ == '__main__':
     print('Loaded {} vertices and {} edges'.format(n, len(E)))
     g = Graph(E, W, n)
 
-    T = 100
-    k = 5
+    T = 20
+    k = 10
 
     l_mc = 3  # number of simulations used for the Monte-Carlo averages
     mc_oracle = MonteCarloOracle(l_mc)
 
     epsilon = 0.1  # performance criterion
-    p = 0.95  # performance criterion
+    p = 0.99  # performance criterion
     l_TIM = l_parameter(n, p)
     tim_oracle = TIM_Oracle(epsilon, l_TIM)
     
@@ -197,11 +200,20 @@ if __name__ == '__main__':
     alg = Bandit(E, W, n)
     
 #    print("\nWith Monte Carlo oracle : ")
-#    mu_hat, cumulated_reward = alg.bandit(T, k, mc_oracle)
+#    mu_hat, rewards = alg.cucb(T, k, mc_oracle)
 ##    print("mu_hat : ", mu_hat)
-#    print("cumulated_reward : ", cumulated_reward)
+#    print("cumulated_reward : ", np.cumsum(rewards)[-1])
     
-    print("\nWith Two Phase Influence Maximization (TIM) oracle : ")
-    mu_hat, cumulated_reward = alg.cucb(T, k, tim_oracle)
+    print("\nWith Two Phase Influence Maximization (TIM) oracle and CUCB : ")
+    mu_hat, rewards = alg.cucb(T, k, tim_oracle)
 #    print("mu_hat : ", mu_hat)
-    print("cumulated_reward : ", cumulated_reward)
+#    print("cumulated_reward : ", np.cumsum(rewards)[-1])
+    plt.plot(np.arange(T), rewards)
+    plt.show()
+    
+#    print("\nWith Two Phase Influence Maximization (TIM) oracle and Thompson sampling : ")
+#    mu_hat, rewards = alg.thompson(T, k, tim_oracle)
+##    print("mu_hat : ", mu_hat)
+##    print("cumulated_reward : ", np.cumsum(rewards)[-1])
+#    plt.plot(np.arange(T), rewards)
+#    plt.show()
