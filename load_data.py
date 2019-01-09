@@ -1,6 +1,6 @@
 import os
 import numpy as np
-# import graph_tool.all as gt
+import graph_tool.all as gt
 
 
 def load_graph(network, node_id):
@@ -10,7 +10,7 @@ def load_graph(network, node_id):
     :param node_id: id of the node to load
     :return: E the list of edges, W the associated weight (ramdomly picked) and n s.t. V = \{1, ..., n\}
     """
-    path = os.path.join(network, '{}.edges'.format(node_id))
+    path = os.path.join('data', network, '{}.edges'.format(node_id))
     assert os.path.exists(path), "File not found"
     with open(path, 'r') as file:
         V = {}
@@ -46,7 +46,9 @@ def draw_graph(E, W, n):
 
 
 if __name__ == '__main__':
-    E, W, n = load_graph('twitter', 12831)
+    E, W, n = load_graph('facebook', 0)
+    print(n)
+    print(len(E))
     # g = price_network(1500)
     # print(g)
     draw_graph(E, W, n)

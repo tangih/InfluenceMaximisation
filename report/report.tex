@@ -4,6 +4,7 @@
 \usepackage{amsmath}
 \usepackage{algorithm}
 \usepackage[noend]{algpseudocode}
+\usepackage{graphicx}
 
 %opening
 \title{Online influence maximization with different propagation models}
@@ -180,11 +181,11 @@ TIM+, refinement of TIM (\emph{Two-Phase Influence Maximization}), works in thes
 
 \paragraph{1. Parameter Estimation (algorithms 4 and 5)}
 Compute a lower-bound of the maximum expected spread among all size-k seed sets named $KPT^+$, then used to derive the parameter $\theta = \frac{\lambda}{KPT^+}$ where $\lambda = (8 + 2 \epsilon)n \cdot (l \log n + \log \binom{n}{k}+ \log 2) \cdot \epsilon^{-2}$ .
-
+% 
 \paragraph{2. Node Selection (algorithm 3)}
 Sample $\theta$ random RR sets from $G$. Return a size-k node set $S_k^{\star}$ that covers a large fraction of those RR sets using the greedy algorithm.
 
-The parameter $\epsilon^'$ of algorithm 5 is set to $\epsilon^{'} = 5 \cdot \sqrt[3]{(l \ \epsilon^{2}) / (k + l)}$
+The parameter $\epsilon^{'}$ of algorithm 5 is set to $\epsilon^{'} = 5 \cdot \sqrt[3]{(l \epsilon^{2}) / (k + l)}$
 
 \begin{algorithm}
 \caption{Node selection}\label{alg:oracle}
@@ -249,7 +250,41 @@ The parameter $\epsilon^'$ of algorithm 5 is set to $\epsilon^{'} = 5 \cdot \sqr
 \section{Experiments}
 \label{scn:exp}
 
+We perform tests of these algorithms on three graphs:
+\begin{itemize}
+ \item The first graph is a subgraph from facebook, taken from the SNAP dataset~\cite{leskovec2015snap}. The graph is undirected, with 333 vertices and 2519 edges.
+\item The second graph is a subgraph from twitter, also taken from the SNAP dataset. The graph is directed, it has 236 vertices and 2478 edges.
+\item The third graph is a test graph we created. It is undirected, with 16 vertices and 22 edges. The graph can be visualized fig. \ref{fig:testgraph}.
+ \end{itemize}
+ 
+ \begin{figure}
+  \centering
+    \includegraphics[width=0.5\textwidth]{test_graph.png}
+        \includegraphics[width=0.5\textwidth]{facebook.png}
+      \caption{Top: our custom test graph; bottom: facebook test graph}
+        \label{fig:testgraph}
+\end{figure}
+
+ \begin{figure}
+  \centering
+    \includegraphics[width=\textwidth]{total_test.png}
+      \caption{Top: our custom test graph; bottom: facebook test graph}
+        \label{fig:testgraph}
+\end{figure}
+
+
+ \begin{figure}
+  \centering
+    \includegraphics[width=0.5\textwidth]{conv_weights_twitter.png}
+      \caption{Top: our custom test graph; bottom: facebook test graph}
+        \label{fig:testgraph}
+\end{figure}
+
+
+
 \section{Conclusion}
+
+\newpage
 
 \bibliography{list}
 \bibliographystyle{plain}

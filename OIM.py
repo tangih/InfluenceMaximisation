@@ -118,6 +118,7 @@ class Bandit(IM):
         rewards = []
         # res = []
         mean = []
+        n_trials = 100  # number of trials to evaluate the average spread
         for t in range(1, T + 1):
             print("Time step : ", t)
             
@@ -133,30 +134,28 @@ class Bandit(IM):
             S = self.picked_action(mu_bar, k, o)
             activated_edges, triggered_arms, reward = self.spread(S)
 
-            # res.append([])
-            # for e in self.E:
-            #     res[-1].append(mu_bar[e])
-            dist = []
-            for e in self.E:
-                dist.append(abs(mu_bar[e] - self.weight_matrix[e]))
-                # print('{:.3f} - {:.3f}  ---> {:.3f}'.format(mu_bar[e], self.weight_matrix[e], dist[-1]))
-            # print('MEAN: {}'.format(np.mean(dist)))
-            mean.append(np.mean(dist))
-
             # Update counts, empirical means, and cumulated reward
             for e in triggered_arms:
                 counts[e] += 1
                 sum = (counts[e] - 1) * mu_hat[e]
                 X = 1 if e in activated_edges else 0
                 mu_hat[e] = (X + sum) / counts[e]
-            rewards.append(reward)
-        # for i in range(len(res[0])):
-        #     x = np.arange(len(res))
-        #     y = [res[j][i] for j in range(len(res))]
-        #     plt.plot(x, y)
-        # plt.show()
+            sum = 0
+            for trial in range(n_trials):
+                _, _, reward = self.spread(S)
+                sum += reward
+            rewards.append(sum/n_trials)  # compute average reward associated to S
+
+            # compute mean distance to GT parameters
+            dist = []
+            for e in self.E:
+                dist.append(abs(mu_bar[e] - self.weight_matrix[e]))
+
+            mean.append(np.mean(dist))
+
         plt.plot(np.arange(len(mean)), mean)
         plt.xlabel('iteration')
+        plt.ylim((0, 1))
         plt.ylabel('mean distance to edge probabilities')
         plt.show()
         return mu_hat, rewards
@@ -194,21 +193,21 @@ class Bandit(IM):
 
 if __name__ == '__main__':
     np.random.seed(0)
-    # graph_name = 'twitter'
-    graph_name = 'test'
-    # graph_node = 12831
+    graph_name = 'facebook'
+    # graph_name = 'test'
     graph_node = 0
+    # graph_node = 0
     E, W, n = load_graph(graph_name, graph_node)
-    W = [.1, .1, .1, .1, .1, .1, .5, .5, .3, .3, .3, .3,
-         .3, .3, .3, .3, .5, .5, .7, .7, .5, .5, .7, .7,
-         .3, .3, .5, .5, .3, .3, .3, .3, .3, .3, .1, .1,
-         .1, .1, .1, .1, .1, .1, .1, .1]
+    # W = [.1, .1, .1, .1, .1, .1, .5, .5, .3, .3, .3, .3,
+    #      .3, .3, .3, .3, .5, .5, .7, .7, .5, .5, .7, .7,
+    #      .3, .3, .5, .5, .3, .3, .3, .3, .3, .3, .1, .1,
+    #      .1, .1, .1, .1, .1, .1, .1, .1]  # only for 'test' graph
 
     print('Loaded graph from {} dataset, node {}'.format(graph_name, graph_node))
     print('Loaded {} vertices and {} edges'.format(n, len(E)))
     g = Graph(E, W, n)
 
-    T = 100
+    T = 500
     k = 5
 
     l_mc = 3  # number of simulations used for the Monte-Carlo averages
@@ -245,36 +244,15 @@ if __name__ == '__main__':
     # plt.show()
     regret = (score - np.array(rewards))
     cum_regret = np.cumsum(regret)
-    plt.plot(np.arange(len(cum_regret)), cum_regret)
+    # plt.plot(np.arange(len(cum_regret)), cum_regret)
+    plt.plot(np.arange(len(rewards)), rewards)
     plt.xlabel('iteration')
-    plt.ylabel('cumulative regret')
+    plt.ylabel('mean reward')
     plt.show()
 
-    # print("\nWith Two Phase Influence Maximization (TIM) oracle and Thompson sampling : ")
-    # mu_hat, rewards = alg.thompson(T, k, tim_oracle)
-    # print("mu_hat : ", mu_hat)
-    # print("cumulated_reward : ", np.cumsum(rewards)[-1])
-    # plt.plot(np.arange(T), rewards)
-    # plt.show()
-
-    # E, _, n = load_graph('test', 0)
-    # W = [.1, .1, .1, .1, .1, .1, .5, .5, .3, .3, .3, .3,
-    #      .3, .3, .3, .3, .5, .5, .7, .7, .5, .5, .7, .7,
-    #      .3, .3, .5, .5, .3, .3, .3, .3, .3, .3, .1, .1,
-    #      .1, .1, .1, .1, .1, .1, .1, .1]
-    # for i in range(len(E) // 2):
-    #     print('{} -> {}'.format(E[2*i], W[2*i]))
-    # print(len(W))
-    # g = IM(E, W, n)
-    # k = 3
-    # p = 0.95
-    # eps = 0.2
-    # l_tim = l_parameter(n, p)
-    # l_mc = 100
-    #
-    # oracle1 = TIM_Oracle(eps, l_tim)
-    # oracle2 = MonteCarloOracle(l_mc)
-    # nodes1 = oracle1.action(g, k)
-    # nodes2 = oracle2.action(g, k)
-    # print(nodes1)
-    # print(nodes2)
+    plt.rc('text', usetex=True)
+    plt.rc('font', family='serif')
+    plt.xlabel('iteration')
+    plt.ylabel(r'$\text{Reg}(T) / \sqrt{t\log t}$')
+    plt.plot(np.arange(len(cum_regret)), [cum_regret[t] / np.sqrt(t*np.log(t)) for t in range(len(cum_regret))])
+    plt.show()
