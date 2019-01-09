@@ -116,7 +116,8 @@ class Bandit(IM):
         counts = {e: 0 for e in self.E}
         mu_hat = {e: 1 for e in self.E}
         rewards = []
-        
+        # res = []
+        mean = []
         for t in range(1, T + 1):
             print("Time step : ", t)
             
@@ -128,17 +129,36 @@ class Bandit(IM):
             mu_bar = {e: min(1, mu_hat[e] + rho[e]) for e in self.E}
 
             # Draw action to play from the oracle
-#            print("Drawing action from the oracle")
+            # print("Drawing action from the oracle")
             S = self.picked_action(mu_bar, k, o)
             activated_edges, triggered_arms, reward = self.spread(S)
-            
+
+            # res.append([])
+            # for e in self.E:
+            #     res[-1].append(mu_bar[e])
+            dist = []
+            for e in self.E:
+                dist.append(abs(mu_bar[e] - self.weight_matrix[e]))
+                # print('{:.3f} - {:.3f}  ---> {:.3f}'.format(mu_bar[e], self.weight_matrix[e], dist[-1]))
+            # print('MEAN: {}'.format(np.mean(dist)))
+            mean.append(np.mean(dist))
+
             # Update counts, empirical means, and cumulated reward
             for e in triggered_arms:
                 counts[e] += 1
+                sum = (counts[e] - 1) * mu_hat[e]
                 X = 1 if e in activated_edges else 0
-                mu_hat[e] += (X - mu_hat[e]) / counts[e]
+                mu_hat[e] = (X + sum) / counts[e]
             rewards.append(reward)
-        
+        # for i in range(len(res[0])):
+        #     x = np.arange(len(res))
+        #     y = [res[j][i] for j in range(len(res))]
+        #     plt.plot(x, y)
+        # plt.show()
+        plt.plot(np.arange(len(mean)), mean)
+        plt.xlabel('iteration')
+        plt.ylabel('mean distance to edge probabilities')
+        plt.show()
         return mu_hat, rewards
 
     def thompson(self, T, k, o):
@@ -175,60 +195,86 @@ class Bandit(IM):
 if __name__ == '__main__':
     np.random.seed(0)
     # graph_name = 'twitter'
+    graph_name = 'test'
     # graph_node = 12831
-    # E, W, n = load_graph(graph_name, graph_node)
-    # print('Loaded graph from {} dataset, node {}'.format(graph_name, graph_node))
-    # print('Loaded {} vertices and {} edges'.format(n, len(E)))
-    # g = Graph(E, W, n)
-    #
-    # T = 100
-    # k = 5
-    #
-    # l_mc = 3  # number of simulations used for the Monte-Carlo averages
-    # mc_oracle = MonteCarloOracle(l_mc)
-    #
-    # epsilon = 0.2  # performance criterion
-    # p = 0.95  # performance criterion
-    # l_TIM = l_parameter(n, p)
-    # tim_oracle = TIM_Oracle(epsilon, l_TIM)
+    graph_node = 0
+    E, W, n = load_graph(graph_name, graph_node)
+    W = [.1, .1, .1, .1, .1, .1, .5, .5, .3, .3, .3, .3,
+         .3, .3, .3, .3, .5, .5, .7, .7, .5, .5, .7, .7,
+         .3, .3, .5, .5, .3, .3, .3, .3, .3, .3, .1, .1,
+         .1, .1, .1, .1, .1, .1, .1, .1]
+
+    print('Loaded graph from {} dataset, node {}'.format(graph_name, graph_node))
+    print('Loaded {} vertices and {} edges'.format(n, len(E)))
+    g = Graph(E, W, n)
+
+    T = 100
+    k = 5
+
+    l_mc = 3  # number of simulations used for the Monte-Carlo averages
+    mc_oracle = MonteCarloOracle(l_mc)
+
+    epsilon = 0.2  # performance criterion
+    p = 0.95  # performance criterion
+    l_TIM = l_parameter(n, p)
+    tim_oracle = TIM_Oracle(epsilon, l_TIM)
     
-#    S = tim_oracle.action(g, 5)
+
 #    print("S : ", S)
     
-    # alg = Bandit(E, W, n)
-#
-#    print("\nWith Monte Carlo oracle : ")
-#    mu_hat, rewards = alg.cucb(T, k, mc_oracle)
-##    print("mu_hat : ", mu_hat)
-#    print("cumulated_reward : ", np.cumsum(rewards)[-1])
-    
-    # print("\nWith Two Phase Influence Maximization (TIM) oracle and CUCB : ")
-    # mu_hat, rewards = alg.cucb(T, k, tim_oracle)
-#    print("mu_hat : ", mu_hat)
-#    print("cumulated_reward : ", np.cumsum(rewards)[-1])
-#     plt.plot(np.arange(T), rewards)
-#     plt.show()
-    
-#    print("\nWith Two Phase Influence Maximization (TIM) oracle and Thompson sampling : ")
-#    mu_hat, rewards = alg.thompson(T, k, tim_oracle)
-##    print("mu_hat : ", mu_hat)
-##    print("cumulated_reward : ", np.cumsum(rewards)[-1])
-#    plt.plot(np.arange(T), rewards)
-#    plt.show()
+    alg = Bandit(E, W, n)
+    S = tim_oracle.action(g, k)
 
-    E, W, n = load_graph('test', 0)
-    print(E)
-    # W = [.1, .1, .1, ]
-    g = IM(E, W, n)
-    k = 3
-    p = 0.95
-    eps = 0.2
-    l_tim = l_parameter(n, p)
-    l_mc = 100
+    # estimate the optimal score
+    spr = 0
+    n_trials = 100
+    for i in range(n_trials):
+        _, _, n_act = alg.spread(S)
+        spr += n_act
+    score = spr / n_trials
+    # print("\nWith Monte Carlo oracle : ")
+    # mu_hat, rewards = alg.cucb(T, k, mc_oracle)
+    # print("mu_hat : ", mu_hat)
+    # print("cumulated_reward : ", np.cumsum(rewards)[-1])
+    
+    print("\nWith Two Phase Influence Maximization (TIM) oracle and CUCB : ")
+    mu_hat, rewards = alg.cucb(T, k, tim_oracle)
+    # print("mu_hat : ", mu_hat)
+    # print("cumulated_reward : ", np.cumsum(rewards)[-1])
+    # plt.plot(np.arange(T), rewards)
+    # plt.show()
+    regret = (score - np.array(rewards))
+    cum_regret = np.cumsum(regret)
+    plt.plot(np.arange(len(cum_regret)), cum_regret)
+    plt.xlabel('iteration')
+    plt.ylabel('cumulative regret')
+    plt.show()
 
-    oracle1 = TIM_Oracle(eps, l_tim)
-    oracle2 = MonteCarloOracle(l_mc)
-    nodes1 = oracle1.action(g, k)
-    nodes2 = oracle2.action(g, k)
-    print(nodes1)
-    print(nodes2)
+    # print("\nWith Two Phase Influence Maximization (TIM) oracle and Thompson sampling : ")
+    # mu_hat, rewards = alg.thompson(T, k, tim_oracle)
+    # print("mu_hat : ", mu_hat)
+    # print("cumulated_reward : ", np.cumsum(rewards)[-1])
+    # plt.plot(np.arange(T), rewards)
+    # plt.show()
+
+    # E, _, n = load_graph('test', 0)
+    # W = [.1, .1, .1, .1, .1, .1, .5, .5, .3, .3, .3, .3,
+    #      .3, .3, .3, .3, .5, .5, .7, .7, .5, .5, .7, .7,
+    #      .3, .3, .5, .5, .3, .3, .3, .3, .3, .3, .1, .1,
+    #      .1, .1, .1, .1, .1, .1, .1, .1]
+    # for i in range(len(E) // 2):
+    #     print('{} -> {}'.format(E[2*i], W[2*i]))
+    # print(len(W))
+    # g = IM(E, W, n)
+    # k = 3
+    # p = 0.95
+    # eps = 0.2
+    # l_tim = l_parameter(n, p)
+    # l_mc = 100
+    #
+    # oracle1 = TIM_Oracle(eps, l_tim)
+    # oracle2 = MonteCarloOracle(l_mc)
+    # nodes1 = oracle1.action(g, k)
+    # nodes2 = oracle2.action(g, k)
+    # print(nodes1)
+    # print(nodes2)
