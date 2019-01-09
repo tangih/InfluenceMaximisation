@@ -90,7 +90,6 @@ class Bandit(IM):
     def __init__(self, E, W, n):
         super(Bandit, self).__init__(E, W, n)
         
-        
     def picked_action(self, mu, k, o):
         """ Returns an action S using oracle o and estimated probabilities 
         mu for the edges """
@@ -174,42 +173,41 @@ class Bandit(IM):
 
 
 if __name__ == '__main__':
-
     np.random.seed(0)
-    graph_name = 'twitter'
-    graph_node = 12831
-    E, W, n = load_graph(graph_name, graph_node)
-    print('Loaded graph from {} dataset, node {}'.format(graph_name, graph_node))
-    print('Loaded {} vertices and {} edges'.format(n, len(E)))
-    g = Graph(E, W, n)
-
-    T = 20
-    k = 10
-
-    l_mc = 3  # number of simulations used for the Monte-Carlo averages
-    mc_oracle = MonteCarloOracle(l_mc)
-
-    epsilon = 0.1  # performance criterion
-    p = 0.99  # performance criterion
-    l_TIM = l_parameter(n, p)
-    tim_oracle = TIM_Oracle(epsilon, l_TIM)
+    # graph_name = 'twitter'
+    # graph_node = 12831
+    # E, W, n = load_graph(graph_name, graph_node)
+    # print('Loaded graph from {} dataset, node {}'.format(graph_name, graph_node))
+    # print('Loaded {} vertices and {} edges'.format(n, len(E)))
+    # g = Graph(E, W, n)
+    #
+    # T = 100
+    # k = 5
+    #
+    # l_mc = 3  # number of simulations used for the Monte-Carlo averages
+    # mc_oracle = MonteCarloOracle(l_mc)
+    #
+    # epsilon = 0.2  # performance criterion
+    # p = 0.95  # performance criterion
+    # l_TIM = l_parameter(n, p)
+    # tim_oracle = TIM_Oracle(epsilon, l_TIM)
     
 #    S = tim_oracle.action(g, 5)
 #    print("S : ", S)
     
-    alg = Bandit(E, W, n)
-    
+    # alg = Bandit(E, W, n)
+#
 #    print("\nWith Monte Carlo oracle : ")
 #    mu_hat, rewards = alg.cucb(T, k, mc_oracle)
 ##    print("mu_hat : ", mu_hat)
 #    print("cumulated_reward : ", np.cumsum(rewards)[-1])
     
-    print("\nWith Two Phase Influence Maximization (TIM) oracle and CUCB : ")
-    mu_hat, rewards = alg.cucb(T, k, tim_oracle)
+    # print("\nWith Two Phase Influence Maximization (TIM) oracle and CUCB : ")
+    # mu_hat, rewards = alg.cucb(T, k, tim_oracle)
 #    print("mu_hat : ", mu_hat)
 #    print("cumulated_reward : ", np.cumsum(rewards)[-1])
-    plt.plot(np.arange(T), rewards)
-    plt.show()
+#     plt.plot(np.arange(T), rewards)
+#     plt.show()
     
 #    print("\nWith Two Phase Influence Maximization (TIM) oracle and Thompson sampling : ")
 #    mu_hat, rewards = alg.thompson(T, k, tim_oracle)
@@ -217,3 +215,20 @@ if __name__ == '__main__':
 ##    print("cumulated_reward : ", np.cumsum(rewards)[-1])
 #    plt.plot(np.arange(T), rewards)
 #    plt.show()
+
+    E, W, n = load_graph('test', 0)
+    print(E)
+    # W = [.1, .1, .1, ]
+    g = IM(E, W, n)
+    k = 3
+    p = 0.95
+    eps = 0.2
+    l_tim = l_parameter(n, p)
+    l_mc = 100
+
+    oracle1 = TIM_Oracle(eps, l_tim)
+    oracle2 = MonteCarloOracle(l_mc)
+    nodes1 = oracle1.action(g, k)
+    nodes2 = oracle2.action(g, k)
+    print(nodes1)
+    print(nodes2)

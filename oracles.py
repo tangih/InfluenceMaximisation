@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.special import binom as binom
 import progressbar
+from load_data import load_graph
 
 
 class Oracle:
@@ -167,3 +168,4 @@ def l_parameter(n, p):
     """ Returns the l parameter such that the TIM oracle guarantees its
     performance with probability p when running on a graph with n nodes """
     return (- np.log(1 - p)) / np.log(n)
+
