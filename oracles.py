@@ -125,7 +125,6 @@ class TIM_Oracle(Oracle):
         kpt_ = f * g.nb_nodes / (1 + eps_)
         
         return max(kpt, kpt_)
-    
 
     def node_selection(self, g, k, theta):
         

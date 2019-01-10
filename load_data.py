@@ -46,7 +46,7 @@ def draw_graph(E, W, n):
 
 
 if __name__ == '__main__':
-    E, W, n = load_graph('facebook', 0)
+    E, W, n = load_graph('twitter', 12831)
     print(n)
     print(len(E))
     # g = price_network(1500)
