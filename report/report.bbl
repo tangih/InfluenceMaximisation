@@ -1,0 +1,96 @@
+\begin{thebibliography}{10}
+
+\bibitem{bass1976new}
+FM~Bass.
+\newblock A new product growth model for consumer durables, mathematical models
+  in marketing.
+\newblock {\em Lecture Notes in Economics and Mathematical Systems},
+  132:351--253, 1976.
+
+\bibitem{borgs2014maximizing}
+Christian Borgs, Michael Brautbar, Jennifer Chayes, and Brendan Lucier.
+\newblock Maximizing social influence in nearly optimal time.
+\newblock In {\em Proceedings of the twenty-fifth annual ACM-SIAM symposium on
+  Discrete algorithms}, pages 946--957. SIAM, 2014.
+
+\bibitem{chen2016combinatorial}
+Wei Chen, Yajun Wang, Yang Yuan, and Qinshi Wang.
+\newblock Combinatorial multi-armed bandit and its extension to
+  probabilistically triggered arms.
+\newblock {\em The Journal of Machine Learning Research}, 17(1):1746--1778,
+  2016.
+
+\bibitem{coleman1966medical}
+James~Samuel Coleman, Elihu Katz, and Herbert Menzel.
+\newblock {\em Medical innovation: A diffusion study}.
+\newblock Bobbs-Merrill Co, 1966.
+
+\bibitem{domingos2001mining}
+Pedro Domingos and Matt Richardson.
+\newblock Mining the network value of customers.
+\newblock In {\em Proceedings of the seventh ACM SIGKDD international
+  conference on Knowledge discovery and data mining}, pages 57--66. ACM, 2001.
+
+\bibitem{hu2005efficient}
+Yifan Hu.
+\newblock Efficient, high-quality force-directed graph drawing.
+\newblock {\em Mathematica Journal}, 10(1):37--71, 2005.
+
+\bibitem{kempe2003maximizing}
+David Kempe, Jon Kleinberg, and {\'E}va Tardos.
+\newblock Maximizing the spread of influence through a social network.
+\newblock In {\em Proceedings of the ninth ACM SIGKDD international conference
+  on Knowledge discovery and data mining}, pages 137--146. ACM, 2003.
+
+\bibitem{kveton2015combinatorial}
+Branislav Kveton, Zheng Wen, Azin Ashkan, and Csaba Szepesvari.
+\newblock Combinatorial cascading bandits.
+\newblock In {\em Advances in Neural Information Processing Systems}, pages
+  1450--1458, 2015.
+
+\bibitem{kveton2015tight}
+Branislav Kveton, Zheng Wen, Azin Ashkan, and Csaba Szepesvari.
+\newblock Tight regret bounds for stochastic combinatorial semi-bandits.
+\newblock In {\em Artificial Intelligence and Statistics}, pages 535--543,
+  2015.
+
+\bibitem{leskovec2015snap}
+Jure Leskovec and Andrej Krevl.
+\newblock $\{$SNAP Datasets$\}$:$\{$Stanford$\}$ large network dataset
+  collection.
+\newblock 2015.
+
+\bibitem{li2010contextual}
+Lihong Li, Wei Chu, John Langford, and Robert~E Schapire.
+\newblock A contextual-bandit approach to personalized news article
+  recommendation.
+\newblock In {\em Proceedings of the 19th international conference on World
+  wide web}, pages 661--670. ACM, 2010.
+
+\bibitem{tang2014influence}
+Youze Tang, Xiaokui Xiao, and Yanchen Shi.
+\newblock Influence maximization: Near-optimal time complexity meets practical
+  efficiency.
+\newblock In {\em Proceedings of the 2014 ACM SIGMOD international conference
+  on Management of data}, pages 75--86. ACM, 2014.
+
+\bibitem{thompson1933likelihood}
+William~R Thompson.
+\newblock On the likelihood that one unknown probability exceeds another in
+  view of the evidence of two samples.
+\newblock {\em Biometrika}, 25(3/4):285--294, 1933.
+
+\bibitem{wang2017improving}
+Qinshi Wang and Wei Chen.
+\newblock Improving regret bounds for combinatorial semi-bandits with
+  probabilistically triggered arms and its applications.
+\newblock In {\em Advances in Neural Information Processing Systems}, pages
+  1161--1171, 2017.
+
+\bibitem{wen2016online}
+Zheng Wen, Branislav Kveton, Michal Valko, and Sharan Vaswani.
+\newblock Online influence maximization under independent cascade model with
+  semi-bandit feedback.
+\newblock {\em arXiv preprint arXiv:1605.06593}, 2016.
+
+\end{thebibliography}
