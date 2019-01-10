@@ -116,9 +116,11 @@ class Bandit(IM):
         counts = {e: 0 for e in self.E}
         mu_hat = {e: 1 for e in self.E}
         rewards = []
-        # res = []
         mean = []
         n_trials = 100  # number of trials to evaluate the average spread
+#        timesteps_eval = [1] + [int((T / 100) * i) for i in range(1, 100)]
+#        timesteps_eval = list(range(1, T + 1))
+        
         for t in range(1, T + 1):
             print("Time step : ", t)
             
@@ -140,17 +142,20 @@ class Bandit(IM):
                 sum = (counts[e] - 1) * mu_hat[e]
                 X = 1 if e in activated_edges else 0
                 mu_hat[e] = (X + sum) / counts[e]
+            
+#            if t in timesteps_eval:
+            
+            # compute average reward associated to S
             sum = 0
             for trial in range(n_trials):
                 _, _, reward = self.spread(S)
                 sum += reward
-            rewards.append(sum/n_trials)  # compute average reward associated to S
+            rewards.append(sum/n_trials)  
 
             # compute mean distance to GT parameters
             dist = []
             for e in self.E:
                 dist.append(abs(mu_bar[e] - self.weight_matrix[e]))
-
             mean.append(np.mean(dist))
 
         plt.plot(np.arange(len(mean)), mean)
@@ -193,21 +198,21 @@ class Bandit(IM):
 
 if __name__ == '__main__':
     np.random.seed(0)
-    graph_name = 'facebook'
-    # graph_name = 'test'
-    graph_node = 0
-    # graph_node = 0
+    graph_name = 'twitter'
+#    graph_name = 'test'
+    graph_node = 12831
+#    graph_node = 0
     E, W, n = load_graph(graph_name, graph_node)
-    # W = [.1, .1, .1, .1, .1, .1, .5, .5, .3, .3, .3, .3,
-    #      .3, .3, .3, .3, .5, .5, .7, .7, .5, .5, .7, .7,
-    #      .3, .3, .5, .5, .3, .3, .3, .3, .3, .3, .1, .1,
-    #      .1, .1, .1, .1, .1, .1, .1, .1]  # only for 'test' graph
+#    W = [.1, .1, .1, .1, .1, .1, .5, .5, .3, .3, .3, .3,
+#          .3, .3, .3, .3, .5, .5, .7, .7, .5, .5, .7, .7,
+#          .3, .3, .5, .5, .3, .3, .3, .3, .3, .3, .1, .1,
+#          .1, .1, .1, .1, .1, .1, .1, .1]  # only for 'test' graph
 
     print('Loaded graph from {} dataset, node {}'.format(graph_name, graph_node))
     print('Loaded {} vertices and {} edges'.format(n, len(E)))
     g = Graph(E, W, n)
 
-    T = 500
+    T = 10000
     k = 5
 
     l_mc = 3  # number of simulations used for the Monte-Carlo averages
@@ -222,15 +227,16 @@ if __name__ == '__main__':
 #    print("S : ", S)
     
     alg = Bandit(E, W, n)
-    S = tim_oracle.action(g, k)
+#    S = tim_oracle.action(g, k)
 
     # estimate the optimal score
-    spr = 0
-    n_trials = 100
-    for i in range(n_trials):
-        _, _, n_act = alg.spread(S)
-        spr += n_act
-    score = spr / n_trials
+#    spr = 0
+#    n_trials = 100
+#    for i in range(n_trials):
+#        _, _, n_act = alg.spread(S)
+#        spr += n_act
+#    score = spr / n_trials
+    
     # print("\nWith Monte Carlo oracle : ")
     # mu_hat, rewards = alg.cucb(T, k, mc_oracle)
     # print("mu_hat : ", mu_hat)
@@ -242,17 +248,20 @@ if __name__ == '__main__':
     # print("cumulated_reward : ", np.cumsum(rewards)[-1])
     # plt.plot(np.arange(T), rewards)
     # plt.show()
-    regret = (score - np.array(rewards))
-    cum_regret = np.cumsum(regret)
-    # plt.plot(np.arange(len(cum_regret)), cum_regret)
+    
+#    regret = (score - np.array(rewards))
+#    cum_regret = np.cumsum(regret)
+#    plt.plot(np.arange(len(cum_regret)), cum_regret)
     plt.plot(np.arange(len(rewards)), rewards)
     plt.xlabel('iteration')
     plt.ylabel('mean reward')
     plt.show()
 
-    plt.rc('text', usetex=True)
-    plt.rc('font', family='serif')
-    plt.xlabel('iteration')
-    plt.ylabel(r'$\text{Reg}(T) / \sqrt{t\log t}$')
-    plt.plot(np.arange(len(cum_regret)), [cum_regret[t] / np.sqrt(t*np.log(t)) for t in range(len(cum_regret))])
-    plt.show()
+#    plt.rc('text', usetex=True)
+#    plt.rc('font', family='serif')
+#    plt.xlabel('iteration')
+#    plt.ylabel(r'$\text{Reg}(T) / \sqrt{t\log t}$')
+#    plt.plot(np.arange(len(cum_regret)), [cum_regret[t - 1] / np.sqrt(t*np.log(t)) for t in range(1, len(cum_regret) + 1)])
+#    plt.show()
+    
+    plt.close()

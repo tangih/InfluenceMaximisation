@@ -1,6 +1,6 @@
 import os
 import numpy as np
-import graph_tool.all as gt
+#import graph_tool.all as gt
 
 
 def load_graph(network, node_id):
