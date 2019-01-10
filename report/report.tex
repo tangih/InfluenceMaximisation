@@ -15,9 +15,9 @@
 \maketitle
 
 \begin{abstract}
-\begin{center}
- \textbf{Need to write it at the end }
-\end{center}
+\textbf{
+We study the Combinatorial Multi-Armed Bandit with probabilistically Triggered arms and semi-bandit feedback (CMAB-T) framework. Relying on previous studies, we implement in Python the CMAB-T framework, including two learning algorithms, CUCB and Thompson sampling, and two oracle solvers for influence maximization, Greedy with Monte-Carlo approximation and TIM+ oracles. We experiment with these two algorithms and two solvers on three different graphs, of small to medium sizes. We show indeed that the algorithms, especially CUCB in conjunction with TIM+ oracle, converge : they succeed at learning the graphs weights and the best influence maximization strategies, i.e. the seed sets with maximum expected spread.
+}
 \end{abstract}
 
 \section{Introduction}
@@ -250,39 +250,52 @@ The parameter $\epsilon^{'}$ of algorithm 5 is set to $\epsilon^{'} = 5 \cdot \s
 \section{Experiments}
 \label{scn:exp}
 
-We perform tests of these algorithms on three graphs:
+We tested the algorithms on three graphs:
 \begin{itemize}
- \item The first graph is a subgraph from facebook, taken from the SNAP dataset~\cite{leskovec2015snap}. The graph is undirected, with 333 vertices and 2519 edges.
-\item The second graph is a subgraph from twitter, also taken from the SNAP dataset. The graph is directed, it has 236 vertices and 2478 edges.
-\item The third graph is a test graph we created. It is undirected, with 16 vertices and 22 edges. The graph can be visualized fig. \ref{fig:testgraph}.
- \end{itemize}
+ \item The first graph is a subgraph from Facebook, taken from the SNAP dataset~\cite{leskovec2015snap}. The graph is undirected, with 333 vertices and 2519 edges.
+\item The second graph is a subgraph from Twitter, also taken from the SNAP dataset. The graph is directed, it has 236 vertices and 2478 edges.
+\item The third graph is a custom test graph we created. It is undirected, with 16 vertices and 22 edges.
+\end{itemize}
+The first two graphs can be visualized fig.\ref{fig:fig1}. As the Twitter subgraph is very densely connected, we don't include its visualization. For the Facebook subgraph and the Twitter subgraphs, we associated to each edge a weight drawn from $\mathcal{U}([0, 0.1])$, as suggested in \cite{wen2016online}. For our custom test graph we designed the weights by hand.
+
+To show the convergence on the algorithms, we computed and displayed two metrics, i.e. the evolution over time of the mean distance of the weights learned to ground truth weights, and the evolution over time of the expected reward from the action taken during the game.
+
+For our custom test graph, we show the two metrics in fig.\ref{fig:fig2}. We can see that as time goes, the weights are learned, and the expected reward from the action taken increases.
+
+For the Twitter subgraph, we only show the evolution over time of the mean distance of the weights learned to ground truth weigths, in fig.\ref{fig:fig3}. We can also see convergence, although we didn't get to run the algorithm for enough steps to observe unambiguous convergence.
+
+The Facebook subgraph took too long for us to run our algorithms until convergence, so we did not include it in the figures.
+
+All the figures displayed were created running the CUCB algorithm with TIM+ as oracle. However, similar results were obtained using Thompson sampling with TIM+ as oracle, or either algorithms with the Greedy algorithm computing the expected spread using Monte-Carlo approximation as oracle. However, TIM+ outperforms Greedy Monte-Carlo by several orders of magnitude, and CUCB was also faster than Thompson sampling, thus using CUCB and TIM+ allowed us to run experiments faster.
  
  \begin{figure}
   \centering
     \includegraphics[width=0.5\textwidth]{test_graph.png}
         \includegraphics[width=0.5\textwidth]{facebook.png}
-      \caption{SFDP force-directed layout~\cite{hu2005efficient} of our test graphs. Top: our custom test graph; bottom: facebook test graph}
-        \label{fig:testgraph}
+      \caption{SFDP force-directed layout~\cite{hu2005efficient} of our test graphs. Top: our custom test graph; bottom: Facebook subgraph}
+        \label{fig:fig1}
 \end{figure}
 
  \begin{figure}
   \centering
     \includegraphics[width=\textwidth]{total_test.png}
-      \caption{Top: our custom test graph; bottom: facebook test graph}
-        \label{fig:testgraph}
+      \caption{Metrics for our custom test graph}
+        \label{fig:fig2}
 \end{figure}
 
 
  \begin{figure}
   \centering
     \includegraphics[width=0.5\textwidth]{conv_weights_twitter.png}
-      \caption{Top: our custom test graph; bottom: facebook test graph}
-        \label{fig:testgraph}
+      \caption{Evolution over time of mean distance to edges for the Twitter subgraph}
+        \label{fig:fig3}
 \end{figure}
 
 
 
 \section{Conclusion}
+
+
 
 \newpage
 
