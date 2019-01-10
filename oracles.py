@@ -38,7 +38,7 @@ class MonteCarloOracle(Oracle):
             values = [self.expected_spread(g, S + [v]) for v in range(g.nb_nodes)]
             for v in S:
                 values[v] = - np.inf
-            v_t = np.argmax(values)
+            v_t = np.argmax(values)  # select the vertex that increases our reach the most
             S.append(v_t)
 
         return S
@@ -74,10 +74,13 @@ class TIM_Oracle(Oracle):
         return sum([len(g.in_neighb[v]) for v in R])
 
     def kpt_estimation(self, g, k):
+        """
+        applies the two-step algorithm for KPT estimation proposed by the authors
+        """
         c = 6 * self.l * np.log(g.nb_nodes) + 6 * np.log(np.log2(g.nb_nodes))
-        eps_= 5 * np.power((self.l * pow(self.epsilon, 2)) / (k + self.epsilon), 1 / 3)
+        eps_ = 5 * np.power((self.l * pow(self.epsilon, 2)) / (k + self.epsilon), 1 / 3)
 
-#        print('KPT estimation')
+        # KPT estimation step
         over = False
         kpt = 0
         R_list = []
@@ -98,7 +101,7 @@ class TIM_Oracle(Oracle):
             kpt = 1
             return kpt
             
-#        print('KPT refinement')
+        # KPT refinement step
         S = []
 
         for t in range(k):
@@ -111,15 +114,13 @@ class TIM_Oracle(Oracle):
 
         lbda_ = (2 + eps_) * self.l * g.nb_nodes * np.log(g.nb_nodes) * np.power(eps_, -2)
         theta_ = int(lbda_ / kpt)
-#        print("lbda_ : ", lbda_)
-#        print("kpt : ", kpt)
-#        print("theta_ : ", theta_)
         R_list = []
         for _ in range(theta_):
             R_list.append(self.random_rr_set(g))
             
         f = 1
         if theta_ != 0:
+            # f is the fraction of the RR sets containing S
             f = sum([any(v in R for v in S) for R in R_list]) / len(R_list)
             
         kpt_ = f * g.nb_nodes / (1 + eps_)
@@ -127,17 +128,11 @@ class TIM_Oracle(Oracle):
         return max(kpt, kpt_)
 
     def node_selection(self, g, k, theta):
-        
         R_list = []
         S = []
         
         for _ in range(int(theta)):
             R_list.append(self.random_rr_set(g))
-        
-        
-#        print('Node selection:')
-#        for _ in progressbar.ProgressBar(range(int(theta))):
-#            R_list.append(self.random_rr_set(g))
 
         for t in range(k):
             values = [sum([v in R for R in R_list]) for v in range(g.nb_nodes)]
@@ -151,15 +146,11 @@ class TIM_Oracle(Oracle):
         
     def action(self, g, k):
         kpt = self.kpt_estimation(g, k)
-#        print("Finished KPT estimation")
-#        print("KPT : ", kpt)
         lbda = (8 + 2 * self.epsilon) * g.nb_nodes
         lbda *= (self.l * np.log(g.nb_nodes) + np.log(binom(g.nb_nodes, k)) + np.log(2))
         lbda *= pow(self.epsilon, -2)
         theta = lbda / kpt
-#        print("Theta : ", theta)
-    
-#        print("Beginning node selection")
+
         return self.node_selection(g, k, theta)
     
     

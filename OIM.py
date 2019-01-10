@@ -18,7 +18,7 @@ class Graph:
         """
         self.nb_nodes = n
         self.nb_edges = len(E)
-        self.weight_matrix = np.zeros((n, n), dtype=np.float)  # TODO: remove this
+        self.weight_matrix = np.zeros((n, n), dtype=np.float)
         self.E = E
         self.in_neighb = [[] for _ in range(n)]  # self.in_neighb[i] is the list of j s.t. (j, i) \in E
         self.in_weights = [[] for _ in range(n)]  # the associated weigths to the edges contained in self.in_neighb
@@ -26,7 +26,7 @@ class Graph:
         self.out_weights = [[] for _ in range(n)]  # the associated weigths to the edges contained in self.out_neighb
 
         for k, (i, j) in enumerate(E):
-            self.weight_matrix[i, j] = W[k]  # TODO: remove this
+            self.weight_matrix[i, j] = W[k]
             self.in_neighb[j].append(i)
             self.in_weights[j].append(W[k])
             self.out_neighb[i].append(j)
@@ -39,11 +39,9 @@ class Graph:
         return self.out_neighb[i], self.out_weights[i]
 
     def p(self, i, j):
-        # TODO: remove this
         return self.weight_matrix[i, j]
 
     def dfs(self, S, F):
-        # TODO: improve this
         """ Determines all nodes accessible from the set of nodes S through the
         subset of edges F, using the Depth-First Search algorithm """
         assert (all(x in self.E for x in F)), "Please provide a subset of edges of the graph"
@@ -63,11 +61,13 @@ class IM(Graph):
         super(IM, self).__init__(E, W, n)
 
     def spread(self, S):
-        # assert (all(x in self.V for x in S)), "Seed set should be a subset of the graph nodes set"
-        # if len(S) != len(set(S)):
-        #     print("Removing duplicates from the seed set")
-        #     S = list(set(S))
-        
+        """
+        perform spread forward pass
+        :param S: seed set
+        :return: the list of the edges activated during the spread,
+                 the list of the arms triggered during the spread (ie. the edges connected to an influence node)
+                 the number of influenced nodes (ie. the reward)
+        """
         activated_edges = []
 
         # Sample the arms (i.e. the edges) from their distribution
@@ -199,14 +199,14 @@ class Bandit(IM):
 if __name__ == '__main__':
     np.random.seed(0)
     graph_name = 'twitter'
-#    graph_name = 'test'
+    # graph_name = 'test'
     graph_node = 12831
-#    graph_node = 0
+    # graph_node = 0
     E, W, n = load_graph(graph_name, graph_node)
-#    W = [.1, .1, .1, .1, .1, .1, .5, .5, .3, .3, .3, .3,
-#          .3, .3, .3, .3, .5, .5, .7, .7, .5, .5, .7, .7,
-#          .3, .3, .5, .5, .3, .3, .3, .3, .3, .3, .1, .1,
-#          .1, .1, .1, .1, .1, .1, .1, .1]  # only for 'test' graph
+    # W = [.1, .1, .1, .1, .1, .1, .5, .5, .3, .3, .3, .3,
+    #      .3, .3, .3, .3, .5, .5, .7, .7, .5, .5, .7, .7,
+    #      .3, .3, .5, .5, .3, .3, .3, .3, .3, .3, .1, .1,
+    #      .1, .1, .1, .1, .1, .1, .1, .1]  # only for 'test' graph
 
     print('Loaded graph from {} dataset, node {}'.format(graph_name, graph_node))
     print('Loaded {} vertices and {} edges'.format(n, len(E)))
@@ -222,46 +222,22 @@ if __name__ == '__main__':
     p = 0.95  # performance criterion
     l_TIM = l_parameter(n, p)
     tim_oracle = TIM_Oracle(epsilon, l_TIM)
-    
 
-#    print("S : ", S)
-    
     alg = Bandit(E, W, n)
-#    S = tim_oracle.action(g, k)
 
-    # estimate the optimal score
-#    spr = 0
-#    n_trials = 100
-#    for i in range(n_trials):
-#        _, _, n_act = alg.spread(S)
-#        spr += n_act
-#    score = spr / n_trials
-    
-    # print("\nWith Monte Carlo oracle : ")
-    # mu_hat, rewards = alg.cucb(T, k, mc_oracle)
-    # print("mu_hat : ", mu_hat)
-    # print("cumulated_reward : ", np.cumsum(rewards)[-1])
-    
     print("\nWith Two Phase Influence Maximization (TIM) oracle and CUCB : ")
     mu_hat, rewards = alg.cucb(T, k, tim_oracle)
-    # print("mu_hat : ", mu_hat)
-    # print("cumulated_reward : ", np.cumsum(rewards)[-1])
-    # plt.plot(np.arange(T), rewards)
-    # plt.show()
-    
-#    regret = (score - np.array(rewards))
-#    cum_regret = np.cumsum(regret)
-#    plt.plot(np.arange(len(cum_regret)), cum_regret)
+
     plt.plot(np.arange(len(rewards)), rewards)
     plt.xlabel('iteration')
     plt.ylabel('mean reward')
     plt.show()
 
-#    plt.rc('text', usetex=True)
-#    plt.rc('font', family='serif')
-#    plt.xlabel('iteration')
-#    plt.ylabel(r'$\text{Reg}(T) / \sqrt{t\log t}$')
-#    plt.plot(np.arange(len(cum_regret)), [cum_regret[t - 1] / np.sqrt(t*np.log(t)) for t in range(1, len(cum_regret) + 1)])
-#    plt.show()
-    
-    plt.close()
+    # plt.rc('text', usetex=True)
+    # plt.rc('font', family='serif')
+    # plt.xlabel('iteration')
+    # plt.ylabel(r'$\text{Reg}(T) / \sqrt{t\log t}$')
+    # plt.plot(np.arange(len(cum_regret)),
+    #          [cum_regret[t - 1] / np.sqrt(t*np.log(t))
+    #           for t in range(1, len(cum_regret) + 1)])
+    # plt.show()
